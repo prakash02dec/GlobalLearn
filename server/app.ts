@@ -7,7 +7,7 @@ export const app = express();
 
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
+import errorMiddleware from './middleware/error';
 
 // MIDLEWARES
 
@@ -20,6 +20,8 @@ app.use(cookieParser());
 app.use(cors({
     origin: process.env.ORIGIN , // allow only this origin to make requests to the backend server
 }))
+
+app.use(errorMiddleware);
 
 // Testing API
 app.get("/test" , (req : Request , res : Response , next : NextFunction )=> {
