@@ -4,8 +4,8 @@
   "description": "GlobalLearnServer",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1" ,
-    "dev" : "tsnd --respawn server.ts"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsnd --respawn server.ts"
   },
   "author": "Prakash And Prathamesh",
   "license": "ISC",
@@ -20,11 +20,17 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.1.0",
+    "nodemailer": "^6.9.8",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/nodemailer": "^6.4.14"
   }
 }
