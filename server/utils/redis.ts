@@ -5,13 +5,15 @@ dotenv.config();
 // Redis
 import {Redis} from 'ioredis';
 
-export const redis = () => {
+const redisClient = () => {
   if(process.env.REDIS_URL){
-    const redis =  new Redis(process.env.REDIS_URL);
+
     console.log('Redis is connected');
-    return redis;
+    return process.env.REDIS_URL as string ;
   }
   throw new Error('Redis is not connected');
 } 
+
+export const redis = new Redis(redisClient());
 
 

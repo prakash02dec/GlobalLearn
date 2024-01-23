@@ -1,5 +1,9 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import mongoose, { Document , model , Schema } from "mongoose";
 import bycrpt from "bcryptjs";
+import jwt, { Secret } from "jsonwebtoken";
 
 const emailRegexPattern : RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,7 +18,9 @@ export interface IUser extends Document { // IUser is the interface for the user
     role: string;
     isVerified: boolean;
     courses : Array<{ courseId : string}>;
-    matchPassword: (enteredPassword: string) => Promise<boolean>;
+    comparePassword: (enteredPassword: string) => Promise<boolean>;
+    SignAccessToken: () => string;
+    SignRefreshToken: () => string;
 }
 
 const userSchema : Schema<IUser> = new mongoose.Schema({
@@ -71,7 +77,18 @@ userSchema.pre<IUser>("save", async function (next) { // this is a middleware th
     }
     this.password = await bycrpt.hash(this.password , 10);
     next();
-})
+});
+
+// sign access token
+userSchema.methods.SignAccessToken = function () : string { // this is a method that will be used to sign the access token
+    return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || '');
+}
+
+// sign refresh token
+userSchema.methods.SignRefreshToken = function () : string { // this is a method that will be used to sign the refresh token
+    return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || '');
+}
+
 
 // compare user password
 userSchema.methods.comparePassword = async function (enteredPassword : string) : Promise<boolean> { // this is a method that will be used to compare the password entered by the user with the password in the database

@@ -31,7 +31,7 @@ export default function errorMiddleware (err: any, req: Request, res: Response, 
 
     res.status(err.statusCode).json({
         success: false,
-        error: err.stack
+        error: err.message
     });
 
     next();
