@@ -15,6 +15,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/mongodb": "^4.0.7",
     "@types/node": "^20.11.5",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
