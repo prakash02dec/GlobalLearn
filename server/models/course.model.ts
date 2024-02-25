@@ -56,6 +56,7 @@ const reviewSchema = new Schema<IReview>({
     default: 0,
   },
   comment: String,
+  commentReplies: [Object],
 });
 
 const linkSchema = new Schema<ILink>({
@@ -99,7 +100,6 @@ const courseSchema = new Schema<ICourse>({
   },
   thumbnail: {
     public_id: {
-      required: true,
       type: String,
     },
     url: {
