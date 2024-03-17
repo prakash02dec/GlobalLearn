@@ -41,8 +41,8 @@ const bannerImageSchema = new Schema<BannerImage>({
 
 const layoutSchema = new Schema<Layout>({
   type: { type: String },
-  faq: { faqSchema },
-  categories: { categorySchema },
+  faq: [ faqSchema ],
+  categories: [ categorySchema ],
   banner: {
     image: bannerImageSchema,
     title: { type: String },

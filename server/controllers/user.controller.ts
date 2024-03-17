@@ -18,7 +18,7 @@ import cloudinary from "cloudinary";
 import CourseModel from "../models/course.model";
 
 
-// register user 
+// register user
 interface IRegisterationBody {
     name: string,
     email: string,
@@ -81,7 +81,7 @@ export const createActivationToken = (user: any): IActivationToken => {
 };
 
 
-// activate account 
+// activate account
 interface IActivationRequest {
     activation_token: string,
     activation_code: string,
@@ -184,7 +184,7 @@ export const updateAccessToken = catchAsyncError(async (req: Request, res: Respo
 
         const session = await redis.get(decoded.id);
         if (!session)
-            return next(new ErrorHandler(message, 400));
+            return next(new ErrorHandler("Please login for access to this resource", 400));
 
         const user = JSON.parse(session);
 
@@ -204,6 +204,8 @@ export const updateAccessToken = catchAsyncError(async (req: Request, res: Respo
 
         res.cookie("access_token", access_token, accessTokenOptions);
         res.cookie("refresh_token", refresh_token_new, refreshTokenOptions);
+
+        await redis.set(user._id, JSON.stringify(user) , "EX" , 604800 ); // 7 DAYS
 
         res.status(200).json({ status: "success", access_token });
 
@@ -387,7 +389,7 @@ export const getAllUsers = catchAsyncError(
     }
 );
 
-// update user role --- only for admin 
+// update user role --- only for admin
 export const updateUserRole = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id, role } = req.body;

@@ -9,7 +9,7 @@ export const createLayout = catchAsyncError(async (req: Request, res: Response, 
     const { type } = req.body;
     const isTypeExist = await LayoutModel.findOne({ type });
     if (isTypeExist) {
-      return next(new ErrorHandler(`$(type) already exist`, 400));
+      return next(new ErrorHandler(`${type} already exist`, 400));
     }
     if (type === "Banner") {
       const { image, title, subTitle } = req.body;
@@ -116,7 +116,7 @@ export const editLayout = catchAsyncError(async (req: Request, res: Response, ne
   }
 });
 
-// get layout by type 
+// get layout by type
 export const getLayoutByType = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { type } = req.body;
