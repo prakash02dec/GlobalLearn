@@ -37,8 +37,11 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
   try {
     const data = req.body;
     const thumbnail = data.thumbnail;
-    if (thumbnail) {
-      await cloudinary.v2.uploader.destroy(thumbnail.public_id);
+    const courseId = req.params.id;
+    const courseData = await CourseModel.findById(courseId) as any;
+
+    if (thumbnail && !thumbnail.startsWith("https")) {
+      await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
 
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
         folder: "courses",
@@ -49,13 +52,26 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
         url: myCloud.secure_url,
       };
     }
-    const courseId = req.params.id;
-    const course = await CourseModel.findByIdAndUpdate(courseId, { $set: data }, { new: true });
+
+    if (thumbnail.startsWith("https")) {
+      data.thumbnail = {
+        public_id: courseData?.thumbnail.public_id,
+        url: courseData?.thumbnail.url,
+      };
+    }
+
+    const course = await CourseModel.findByIdAndUpdate(
+      courseId,
+      {
+        $set: data,
+      },
+      { new: true }
+    );
+
     res.status(201).json({
       success: true,
       course,
     });
-
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -94,22 +110,14 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
 
 export const getAllCourses = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isCacheExist = await redis.get("allCourses");
-    if (isCacheExist) {
-      const courses = JSON.parse(isCacheExist);
-      res.status(200).json({
-        success: true,
-        courses,
-      });
-    }
-    else {
-      const courses = await CourseModel.find().select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-      await redis.set("allCourses", JSON.stringify(courses));
-      res.status(200).json({
-        success: true,
-        courses,
-      });
-    }
+    const courses = await CourseModel.find().select(
+      "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+    );
+
+    res.status(200).json({
+      success: true,
+      courses,
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -355,7 +363,7 @@ export const addReplyToReview = catchAsyncError(async (req: Request, res: Respon
 
 // get all courses --- only for admin
 
-export const getAllCoursesAdmin = catchAsyncError(
+export const getAdminAllCourses = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       getAllCoursesService(res);
