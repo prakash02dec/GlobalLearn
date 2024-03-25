@@ -162,31 +162,36 @@ export const addQuestion = catchAsyncError(async (req: Request, res: Response, n
       return next(new ErrorHandler("Invalid content id", 400));
     }
 
-    const courseContent = course?.courseData?.find((item: any) => item._id.equals(contentId));
+    const couseContent = course?.courseData?.find((item: any) =>
+      item._id.equals(contentId)
+    );
 
-    if (!courseContent) {
+    if (!couseContent) {
       return next(new ErrorHandler("Invalid content id", 400));
     }
-    // create new question object
+
+    // create a new question object
     const newQuestion: any = {
       user: req.user,
       question,
       questionReplies: [],
     };
-    // add this question to our course content
 
-    courseContent.questions.push(newQuestion);
-    // save the updated course
-    await course?.save();
+    // add this question to our course content
+    couseContent.questions.push(newQuestion);
 
     await NotificationModel.create({
       user: req.user?._id,
-      title: "New Order",
-      message: `You have new question in ${courseContent.title} in ${course?.name}`,
+      title: "New Question Received",
+      message: `You have a new question in ${couseContent.title}`,
     });
+
+    // save the updated course
+    await course?.save();
+
     res.status(200).json({
       success: true,
-      course
+      course,
     });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
@@ -224,6 +229,8 @@ export const addAnswer = catchAsyncError(async (req: Request, res: Response, nex
     const newAnswer: any = {
       user: req.user,
       answer,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     // add this answer to our course content
@@ -277,53 +284,62 @@ export const addReview = catchAsyncError(async (req: Request, res: Response, nex
 
     const courseId = req.params.id;
 
-    // check if user already purchased this course
-    const courseExits = userCourseList?.find((course: any) => course._id === courseId);
+    // check if courseId already exists in userCourseList based on _id
+    const courseExists = userCourseList?.some(
+      (course: any) => course._id.toString() === courseId.toString()
+    );
 
-    if (!courseExits) {
-      return next(new ErrorHandler("You are not eligible to access this course", 404));
+    if (!courseExists) {
+      return next(
+        new ErrorHandler("You are not eligible to access this course", 404)
+      );
     }
 
     const course = await CourseModel.findById(courseId);
+
     const { review, rating } = req.body as IAddReviewData;
 
     const reviewData: any = {
       user: req.user,
-      comment: review,
       rating,
-    }
+      comment: review,
+    };
 
     course?.reviews.push(reviewData);
 
     let avg = 0;
-    course?.reviews.forEach((item: any) => {
-      avg += item.rating;
+
+    course?.reviews.forEach((rev: any) => {
+      avg += rev.rating;
     });
 
-    if (course)
-      course.ratings = avg / course.reviews.length;
+    if (course) {
+      course.ratings = avg / course.reviews.length; // one example we have 2 reviews one is 5 another one is 4 so math working like this = 9 / 2  = 4.5 ratings
+    }
 
     await course?.save();
 
-    const notification = {
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+
+    // create notification
+    await NotificationModel.create({
+      user: req.user?._id,
       title: "New Review Received",
       message: `${req.user?.name} has given a review in ${course?.name}`,
-    }
-    // create a notification
+    });
+
 
     res.status(200).json({
       success: true,
-      course
+      course,
     });
-
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
-
 });
 
 
-interface IAddReplyToReviewData {
+interface IAddReviewData {
   comment: string;
   courseId: string;
   reviewId: string;
@@ -332,29 +348,42 @@ interface IAddReplyToReviewData {
 // add reply in course review
 export const addReplyToReview = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { comment, courseId, reviewId } = req.body as IAddReplyToReviewData;
+    const { comment, courseId, reviewId } = req.body as IAddReviewData;
+
     const course = await CourseModel.findById(courseId);
+
     if (!course) {
       return next(new ErrorHandler("Course not found", 404));
     }
-    const review = course?.reviews.find((item: any) => item._id.equals(reviewId));
+
+    const review = course?.reviews?.find(
+      (rev: any) => rev._id.toString() === reviewId
+    );
+
     if (!review) {
-      return next(new ErrorHandler("Invalid review id", 404));
+      return next(new ErrorHandler("Review not found", 404));
     }
-    const ReplyData: any = {
+
+    const replyData: any = {
       user: req.user,
       comment,
-    }
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     if (!review.commentReplies) {
       review.commentReplies = [];
     }
-    review.commentReplies?.push(ReplyData);
+
+    review.commentReplies?.push(replyData);
 
     await course?.save();
 
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+
     res.status(200).json({
       success: true,
-      course
+      course,
     });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
