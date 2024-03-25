@@ -7,7 +7,7 @@ import userModel, { IUser } from "../models/userModel";
 import ErrorHandler from "../utils/errorHandler";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
@@ -115,7 +115,6 @@ export const activateUser = catchAsyncError(async (req: Request, res: Response, 
 
         res.status(201).json({
             success: true,
-            message: "Account has been activated"
         });
 
     } catch (error: any) {
@@ -145,7 +144,7 @@ export const loginUser = catchAsyncError(async (req: Request, res: Response, nex
 
         const isPasswordMatched = await user.comparePassword(password);
         if (!isPasswordMatched) {
-            return next(new ErrorHandler("Invalid email or password", 401));
+            return next(new ErrorHandler("Invalid email or password", 400));
         };
 
         sendToken(user, 200, res);
@@ -182,7 +181,7 @@ export const updateAccessToken = catchAsyncError(async (req: Request, res: Respo
         if (!decoded)
             return next(new ErrorHandler(message, 400));
 
-        const session = await redis.get(decoded.id);
+        const session = await redis.get(decoded.id as string);
         if (!session)
             return next(new ErrorHandler("Please login for access to this resource", 400));
 
@@ -207,7 +206,7 @@ export const updateAccessToken = catchAsyncError(async (req: Request, res: Respo
 
         await redis.set(user._id, JSON.stringify(user) , "EX" , 604800 ); // 7 DAYS
 
-        next() ;
+        return next() ;
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
@@ -218,7 +217,7 @@ export const updateAccessToken = catchAsyncError(async (req: Request, res: Respo
 export const getUserInfo = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const userId = req.user?._id || "";
+        const userId = req.user?._id;
         getUserById(userId, res);
 
     } catch (error: any) {
@@ -235,15 +234,15 @@ interface ISocialAuthBody {
 // social auth
 export const socialAuth = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, email, avatar } = req.body;
+        const { email, name, avatar } = req.body as ISocialAuthBody;
         const user = await userModel.findOne({ email });
         if (!user) {
-            const user = await userModel.create({ name, email, avatar });
-            sendToken(user, 200, res);
+          const newUser = await userModel.create({ email, name, avatar });
+          sendToken(newUser, 200, res);
         } else {
-            sendToken(user, 200, res);
+          sendToken(user, 200, res);
         }
-    } catch (error: any) {
+      } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 });
@@ -292,7 +291,7 @@ export const updatePassword = catchAsyncError(async (req: Request, res: Response
             return next(new ErrorHandler("Please enter old password and new password", 400));
         }
 
-        const userId = req.user?._id || "";
+        const userId = req.user?._id;
 
         const user = await userModel.findById(userId).select("+password");
 
@@ -331,10 +330,10 @@ interface IUpdateProfilePicture {
 // update profile picture
 export const updateProfilePicture = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { avatar } = req.body;
+        const { avatar } = req.body as IUpdateProfilePicture;
 
-        const userId = req.user?._id || "";
-        const user = await userModel.findById(userId);
+        const userId = req.user?._id;
+        const user = await userModel.findById(userId).select("+password");
 
         if (!user)
             return next(new ErrorHandler("User not found", 400));
@@ -383,9 +382,18 @@ export const getAllUsers = catchAsyncError(
 // update user role --- only for admin
 export const updateUserRole = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id, role } = req.body;
-        updateUserRoleService(res, id, role);
-    } catch (error: any) {
+        const { email, role } = req.body;
+        const isUserExist = await userModel.findOne({ email });
+        if (isUserExist) {
+          const id = isUserExist._id;
+          updateUserRoleService(res,id, role);
+        } else {
+          res.status(400).json({
+            success: false,
+            message: "User not found",
+          });
+        }
+      } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 })

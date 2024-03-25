@@ -1,5 +1,5 @@
 import NotificationModel from "../models/notification.model";
-import e, { NextFunction , Request , Response } from "express";
+import { NextFunction , Request , Response } from "express";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import cron from "node-cron";

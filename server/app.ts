@@ -14,6 +14,7 @@ import orderRouter from './routes/order.route';
 import notificationRouter from './routes/notification.route';
 import analyticsRouter from './routes/analytics.route';
 import layoutRouter from './routes/layout.route';
+import { rateLimit } from 'express-rate-limit'
 // MIDLEWARES
 
 // body parser
@@ -23,10 +24,18 @@ app.use(cookieParser());
 // cors = cross origin resource sharing
 // allows us to make secure requests from the our frontend to the backend server i.e inshort only allowed origins can make requests to the backend server
 app.use(cors({
-    origin: process.env.ORIGIN, // allow only this origin to make requests to the backend server
-}))
+    origin: process.env.ORIGIN,
+    credentials: true, // allow only this origin to make requests to the backend server
+    })
+);
 
-
+// api requests limit
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 100, 
+	standardHeaders: 'draft-7', 
+	legacyHeaders: false, 
+})
 
 // routes
 app.use("/api/v1", userRouter, courseRouter, orderRouter, notificationRouter, analyticsRouter, layoutRouter);
@@ -46,4 +55,5 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
     next(err);
 });
 
+app.use(limiter);
 app.use(errorMiddleware);
