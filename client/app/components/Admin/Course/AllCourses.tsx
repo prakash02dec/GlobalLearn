@@ -96,7 +96,7 @@ const AllCourses = (props: Props) => {
         toast.error(errorMessage.data.message);
       }
     }
-  }, [isSuccess, error,refetch]);
+  }, [isSuccess, error, refetch]);
 
   const handleDelete = async () => {
     const id = courseId;
@@ -144,6 +144,10 @@ const AllCourses = (props: Props) => {
                 borderBottom: "none",
                 color: theme === "dark" ? "#fff" : "#000",
               },
+              "& .MuiDataGrid-container--top [role=row], & .MuiDataGrid-container--bottom [role=row]":
+                {
+                  background: "none",
+                },
               "& .MuiDataGrid-virtualScroller": {
                 backgroundColor: theme === "dark" ? "#1F2A40" : "#F2F0F0",
               },

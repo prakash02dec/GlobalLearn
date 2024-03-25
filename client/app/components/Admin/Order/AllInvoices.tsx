@@ -129,6 +129,10 @@ const AllInvoices = ({ isDashboard }: Props) => {
                 borderBottom: "none",
                 color: theme === "dark" ? "#fff" : "#000",
               },
+              "& .MuiDataGrid-container--top [role=row], & .MuiDataGrid-container--bottom [role=row]":
+                {
+                  background: "none",
+                },
               "& .MuiDataGrid-virtualScroller": {
                 backgroundColor: theme === "dark" ? "#1F2A40" : "#F2F0F0",
               },
