@@ -190,11 +190,17 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
               "& .name-column--cell": {
                 color: theme === "dark" ? "#fff" : "#000",
               },
+
               "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: theme === "dark" ? "#3e4396" : "#A4A9FC",
+                backgroundColor:
+                  theme === "dark" ? `#3e4396 !important` : "#A4A9FC",
                 borderBottom: "none",
                 color: theme === "dark" ? "#fff" : "#000",
               },
+              "& .MuiDataGrid-container--top [role=row], & .MuiDataGrid-container--bottom [role=row]":
+                {
+                  background: "none",
+                },
               "& .MuiDataGrid-virtualScroller": {
                 backgroundColor: theme === "dark" ? "#1F2A40" : "#F2F0F0",
               },
