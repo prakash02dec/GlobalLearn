@@ -2,10 +2,16 @@
   "name": "server",
   "version": "1.0.0",
   "description": "GlobalLearnServer",
-  "main": "server.js",
+  "type": "commonjs",
+  "main": "build/server.js",
+  "engines": {
+    "node":"20.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsnd --respawn --files server.ts"
+    "dev": "tsnd --respawn --files server.ts",
+    "start":"node build/server.js",
+    "build":"tsc"
   },
   "author": "Prakash And Prathamesh",
   "license": "ISC",
