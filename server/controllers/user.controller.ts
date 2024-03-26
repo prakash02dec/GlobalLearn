@@ -15,7 +15,7 @@ import { accessTokenOptions, refreshTokenOptions, sendToken } from "../utils/jwt
 import { redis } from "../utils/redis";
 import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
 import cloudinary from "cloudinary";
-import CourseModel from "../models/course.model";
+// import CourseModel from "../models/course.model";
 
 
 // register user
@@ -56,7 +56,7 @@ export const registrationUser = catchAsyncError(async (req: Request, res: Respon
             res.status(201).json({
                 success: true,
                 message: `Please check your email ${user.email} to activate your account`,
-                activationToken: token,
+                activationToken: activationToken.token,
             });
         } catch (error: any) {
             return next(new ErrorHandler(error.message, 400));
@@ -75,7 +75,7 @@ interface IActivationToken {
 export const createActivationToken = (user: any): IActivationToken => {
     const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const token = jwt.sign({ user, activationCode }, process.env.ACTIVATION_SECRET as Secret, { expiresIn: "5m" });
+    const token = jwt.sign({ user, activationCode, }, process.env.ACTIVATION_SECRET as Secret, { expiresIn: "5m", });
 
     return { token, activationCode };
 };
@@ -130,6 +130,7 @@ interface ILoginBody {
 }
 
 export const loginUser = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    console.log('loginuser')
     try {
         const { email, password } = req.body as ILoginBody;
 
@@ -139,13 +140,13 @@ export const loginUser = catchAsyncError(async (req: Request, res: Response, nex
 
         const user = await userModel.findOne({ email }).select("+password");
         if (!user) {
-            return next(new ErrorHandler("Invalid email or password", 401));
+            return next(new ErrorHandler("Invalid email or password", 400));
         };
 
         const isPasswordMatched = await user.comparePassword(password);
         if (!isPasswordMatched) {
             return next(new ErrorHandler("Invalid email or password", 400));
-        };
+        };  
 
         sendToken(user, 200, res);
 
@@ -162,7 +163,7 @@ export const logoutUser = catchAsyncError(async (req: Request, res: Response, ne
         const userId = req.user?._id || "";
         redis.del(userId);
 
-        res.status(200).json({ success: true, message: "Logged out" });
+        res.status(200).json({ success: true, message: "Logged out", });
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
@@ -174,7 +175,7 @@ export const logoutUser = catchAsyncError(async (req: Request, res: Response, ne
 export const updateAccessToken = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refresh_token = req.cookies.refresh_token as string;
-        const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as jwt.JwtPayload;
+        const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
 
         const message = "Could not refresh token";
 
@@ -234,10 +235,10 @@ interface ISocialAuthBody {
 // social auth
 export const socialAuth = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, name, avatar } = req.body as ISocialAuthBody;
+        const { name, email, avatar } = req.body as ISocialAuthBody;
         const user = await userModel.findOne({ email });
         if (!user) {
-          const newUser = await userModel.create({ email, name, avatar });
+          const newUser = await userModel.create({ name, email, avatar });
           sendToken(newUser, 200, res);
         } else {
           sendToken(user, 200, res);
@@ -286,39 +287,34 @@ interface IUpdatePassword {
 export const updatePassword = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { oldPassword, newPassword } = req.body as IUpdatePassword;
-
+  
         if (!oldPassword || !newPassword) {
-            return next(new ErrorHandler("Please enter old password and new password", 400));
+          return next(new ErrorHandler("Please enter old and new password", 400));
         }
-
-        const userId = req.user?._id;
-
-        const user = await userModel.findById(userId).select("+password");
-
-        if (!user)
-            return next(new ErrorHandler("User not found", 400));
-
-        // if user is registered with social auth
-        if (user?.password == undefined) {
-            return next(new ErrorHandler("Invalid user", 400));
+  
+        const user = await userModel.findById(req.user?._id).select("+password");
+  
+        if (user?.password === undefined) {
+          return next(new ErrorHandler("Invalid user", 400));
         }
-
-        const isPasswordMatched = await user.comparePassword(oldPassword);
-
-        if (!isPasswordMatched)
-            return next(new ErrorHandler("Invalid old password", 400));
-
+  
+        const isPasswordMatch = await user?.comparePassword(oldPassword);
+  
+        if (!isPasswordMatch) {
+          return next(new ErrorHandler("Invalid old password", 400));
+        }
+  
         user.password = newPassword;
-
+  
         await user.save();
-        await redis.set(userId, JSON.stringify(user));
-
-        res.status(200).json({
-            success: true,
-            user,
+  
+        await redis.set(req.user?._id, JSON.stringify(user));
+  
+        res.status(201).json({
+          success: true,
+          user,
         });
-
-    } catch (error: any) {
+      } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 });
@@ -331,38 +327,46 @@ interface IUpdateProfilePicture {
 export const updateProfilePicture = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { avatar } = req.body as IUpdateProfilePicture;
-
+  
         const userId = req.user?._id;
+  
         const user = await userModel.findById(userId).select("+password");
-
-        if (!user)
-            return next(new ErrorHandler("User not found", 400));
-
-        if (avatar) {
+  
+        if (avatar && user) {
+          // if user have one avatar then call this if
+          if (user?.avatar?.public_id) {
             // first delete the old image
-            if (user.avatar?.public_id) {
-
-                await cloudinary.v2.uploader.destroy(user.avatar.public_id);
-            }
+            await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+  
             const myCloud = await cloudinary.v2.uploader.upload(avatar, {
-                folder: "avatars",
-                width: 150,
+              folder: "avatars",
+              width: 150,
             });
-
             user.avatar = {
-                public_id: myCloud.public_id,
-                url: myCloud.secure_url,
-            }
+              public_id: myCloud.public_id,
+              url: myCloud.secure_url,
+            };
+          } else {
+            const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+              folder: "avatars",
+              width: 150,
+            });
+            user.avatar = {
+              public_id: myCloud.public_id,
+              url: myCloud.secure_url,
+            };
+          }
         }
-
-        await user.save();
+  
+        await user?.save();
+  
         await redis.set(userId, JSON.stringify(user));
+  
         res.status(200).json({
-            success: true,
-            user,
+          success: true,
+          user,
         });
-
-    } catch (error: any) {
+      } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 });
@@ -411,7 +415,7 @@ export const deleteUser = catchAsyncError(async (req: Request, res: Response, ne
         await redis.del(id);
         res.status(200).json({
             success: true,
-            message: "User deleted successfully"
+            message: "User deleted successfully",
         });
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));

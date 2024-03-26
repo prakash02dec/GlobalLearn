@@ -7,7 +7,7 @@ import cron from "node-cron";
 // get all notification only  for admin
 export const getNotifications = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try{
-        const notifications = await NotificationModel.find().sort({createdAt: -1});
+        const notifications = await NotificationModel.find().sort({createdAt: -1,});
         res.status(201).json({
             success: true,
             notifications,
@@ -25,10 +25,10 @@ export const updateNotification = catchAsyncError(async (req: Request, res: Resp
         if(!notification){
             return next(new ErrorHandler("Notification not found", 404));
         }else{
-            notification.status ? notification.status = 'read' : notification.status ;
+            notification.status ? (notification.status = 'read') : notification?.status ;
         }
         await notification.save();
-        const notifications = await NotificationModel.find().sort({createdAt: -1});
+        const notifications = await NotificationModel.find().sort({createdAt: -1,});
         res.status(201).json({
             success: true,
             notifications,
