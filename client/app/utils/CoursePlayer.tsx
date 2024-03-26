@@ -14,7 +14,7 @@ const CoursePlayer: FC<Props> = ({ videoUrl }) => {
 
   useEffect(() => {
     axios
-      .post("http://localhost:8000/api/v1/getVdoCipherOTP", {
+      .post(`${process.env.NEXT_PUBLIC_SERVER_URI}getVdoCipherOTP`, {
         videoId: videoUrl,
       })
       .then((res) => {
@@ -28,7 +28,7 @@ const CoursePlayer: FC<Props> = ({ videoUrl }) => {
     >
       {videoData.otp && videoData.playbackInfo !== "" && (
         <iframe
-          src={`https://player.vdocipher.com/v2/?otp=${videoData?.otp}&playbackInfo=${videoData.playbackInfo}&player=jStn6Q1sMRQaoGD6`}
+          src={`https://player.vdocipher.com/v2/?otp=${videoData?.otp}&playbackInfo=${videoData.playbackInfo}&player=${process.env.NEXT_PUBLIC_VDOCIPHER_PLAYER_ID}`}
           style={{
             position: "absolute",
             top: 0,
