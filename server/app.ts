@@ -24,7 +24,7 @@ app.use(cookieParser());
 // cors = cross origin resource sharing
 // allows us to make secure requests from the our frontend to the backend server i.e inshort only allowed origins can make requests to the backend server
 app.use(cors({
-    origin: process.env.ORIGIN,
+    origin: ["http://localhost:3000"],
     credentials: true, // allow only this origin to make requests to the backend server
     })
 );
