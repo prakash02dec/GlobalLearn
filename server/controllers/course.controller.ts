@@ -3,7 +3,7 @@ import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import cloudinary from "cloudinary";
 import { createCourse, getAllCoursesService } from "../services/course.service";
-import CourseModel from "../models/course.model";
+import CourseModel, {IComment} from "../models/course.model";
 import { redis } from "../utils/redis";
 import mongoose from "mongoose";
 import path from "path";
@@ -19,11 +19,11 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     const thumbnail = data.thumbnail;
     if (thumbnail) {
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
-        folder: "courses"
+        folder: "courses",
       });
       data.thumbnail = {
         public_id: myCloud.public_id,
-        url: myCloud.secure_url
+        url: myCloud.secure_url,
       }
     }
     createCourse(data, res, next);
@@ -97,7 +97,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
       await redis.set(courseId, JSON.stringify(course) , "EX" , 604800); //7 days
       res.status(200).json({
         success: true,
-        course
+        course,
       });
     }
 
@@ -129,7 +129,7 @@ export const getCourseByUser = catchAsyncError(async (req: Request, res: Respons
     const userCourseList = req.user?.courses;
     const courseId = req.params.id;
 
-    const courseExits = userCourseList?.find((course: any) => course._id.toString === courseId);
+    const courseExits = userCourseList?.find((course: any) => course._id.toString() === courseId);
 
     if (!courseExits) {
       return next(new ErrorHandler("You are not eligible to access this course", 404));
@@ -138,7 +138,7 @@ export const getCourseByUser = catchAsyncError(async (req: Request, res: Respons
     const content = course?.courseData;
     res.status(200).json({
       success: true,
-      content
+      content,
     });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
@@ -214,12 +214,12 @@ export const addAnswer = catchAsyncError(async (req: Request, res: Response, nex
       return next(new ErrorHandler("Invalid content id", 400));
     }
 
-    const courseContent = course?.courseData?.find((item: any) => item._id.equals(contentId));
+    const couseContent = course?.courseData?.find((item: any) => item._id.equals(contentId));
 
-    if (!courseContent) {
+    if (!couseContent) {
       return next(new ErrorHandler("Invalid content id", 400));
     }
-    const question = courseContent?.questions?.find((item: any) => item._id.equals(questionId));
+    const question = couseContent?.questions?.find((item: any) => item._id.equals(questionId));
 
     if (!question) {
       return next(new ErrorHandler("Invalid question Id", 400));
@@ -243,13 +243,13 @@ export const addAnswer = catchAsyncError(async (req: Request, res: Response, nex
       await NotificationModel.create({
         user: req.user?._id,
         title: "New Answer",
-        message: `You have new question reply in ${courseContent.title} in ${course?.name}`,
+        message: `You have new question reply in ${couseContent.title}`,
       });
 
     } else {
       const data = {
         name: question.user.name,
-        title: courseContent.title,
+        title: couseContent.title,
       };
       const html = await ejs.renderFile(path.join(__dirname, "../mails/question-reply.ejs"), data);
 
@@ -264,12 +264,12 @@ export const addAnswer = catchAsyncError(async (req: Request, res: Response, nex
         return next(new ErrorHandler(error.message, 500));
       }
     }
-    res.status(200).json({ success: true, course });
+    res.status(200).json({ success: true, course, });
 
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
-})
+});
 
 // add review in course
 interface IAddReviewData {
@@ -414,7 +414,7 @@ export const deleteCourse = catchAsyncError(async (req: Request, res: Response, 
     await redis.del(id);
     res.status(200).json({
       success: true,
-      message: "Course deleted successfully"
+      message: "Course deleted successfully",
     });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 400));

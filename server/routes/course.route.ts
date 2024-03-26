@@ -24,7 +24,7 @@ courseRouter.put("/add-reply",updateAccessToken, isAuthenticated, authorizeRoles
 
 courseRouter.get("/get-admin-courses",updateAccessToken, isAuthenticated, authorizeRoles("admin"), getAdminAllCourses);
 
-courseRouter.post("/getVdoCipherOTP",updateAccessToken, generateVideoUrl);
+courseRouter.post("/getVdoCipherOTP", generateVideoUrl);
 
 courseRouter.delete("/delete-course/:id",updateAccessToken, isAuthenticated, authorizeRoles("admin"), deleteCourse);
 export default courseRouter;
