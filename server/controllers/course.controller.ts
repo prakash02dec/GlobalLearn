@@ -3,7 +3,7 @@ import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import cloudinary from "cloudinary";
 import { createCourse, getAllCoursesService } from "../services/course.service";
-import CourseModel, {IComment} from "../models/course.model";
+import CourseModel, { IComment } from "../models/course.model";
 import { redis } from "../utils/redis";
 import mongoose from "mongoose";
 import path from "path";
@@ -52,14 +52,12 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
         url: myCloud.secure_url,
       };
     }
-
     if (thumbnail.startsWith("https")) {
       data.thumbnail = {
         public_id: courseData?.thumbnail.public_id,
         url: courseData?.thumbnail.url,
       };
     }
-
     const course = await CourseModel.findByIdAndUpdate(
       courseId,
       {
@@ -67,7 +65,8 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
       },
       { new: true }
     );
-
+    const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+    await redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604800);
     res.status(201).json({
       success: true,
       course,
@@ -94,7 +93,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
     }
     else {
       const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-      await redis.set(courseId, JSON.stringify(course) , "EX" , 604800); //7 days
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7 days
       res.status(200).json({
         success: true,
         course,
