@@ -44,7 +44,8 @@ const CourseContent: FC<Props> = ({
 
   const handleAddLink = (index: number) => {
     const updatedData = [...courseContentData];
-    updatedData[index].links.push({ title: "", url: "" });
+    const links = [...updatedData[index].links, { title: "", url: "" }];
+    updatedData[index] = { ...courseContentData[index], links };
     setCourseContentData(updatedData);
   };
 
@@ -84,13 +85,13 @@ const CourseContent: FC<Props> = ({
   };
 
   const addNewSection = () => {
-    if (
+    if (( courseContentData.length > 0 ) &&(
       courseContentData[courseContentData.length - 1].title === "" ||
       courseContentData[courseContentData.length - 1].description === "" ||
       courseContentData[courseContentData.length - 1].videoUrl === "" ||
       courseContentData[courseContentData.length - 1].links[0].title === "" ||
       courseContentData[courseContentData.length - 1].links[0].url === ""
-    ) {
+    )) {
       toast.error("Please fill all the fields first!");
     } else {
       setActiveSection(activeSection + 1);
@@ -154,7 +155,7 @@ const CourseContent: FC<Props> = ({
                         value={item.videoSection}
                         onChange={(e) => {
                           const updatedData = [...courseContentData];
-                          updatedData[index].videoSection = e.target.value;
+                          updatedData[index] = { ...courseContentData[index] , videoSection : e.target.value} ;
                           setCourseContentData(updatedData);
                         }}
                       />
@@ -183,10 +184,10 @@ const CourseContent: FC<Props> = ({
                   <div className="flex items-center">
                     <AiOutlineDelete
                       className={`dark:text-white text-[20px] mr-2 text-black ${
-                        index > 0 ? "cursor-pointer" : "cursor-no-drop"
+                        index >= 0 ? "cursor-pointer" : "cursor-no-drop"
                       }`}
                       onClick={() => {
-                        if (index > 0) {
+                        if (index >= 0) {
                           const updatedData = [...courseContentData];
                           updatedData.splice(index, 1);
                           setCourseContentData(updatedData);
@@ -216,7 +217,7 @@ const CourseContent: FC<Props> = ({
                         value={item.title}
                         onChange={(e) => {
                           const updatedData = [...courseContentData];
-                          updatedData[index].title = e.target.value;
+                          updatedData[index] = { ...courseContentData[index],title : e.target.value};
                           setCourseContentData(updatedData);
                         }}
                       />
@@ -230,7 +231,7 @@ const CourseContent: FC<Props> = ({
                         value={item.videoUrl}
                         onChange={(e) => {
                           const updatedData = [...courseContentData];
-                          updatedData[index].videoUrl = e.target.value;
+                          updatedData[index] = {...courseContentData[index] ,videoUrl : e.target.value};
                           setCourseContentData(updatedData);
                         }}
                       />
@@ -244,12 +245,12 @@ const CourseContent: FC<Props> = ({
                         value={item.videoLength}
                         onChange={(e) => {
                           const updatedData = [...courseContentData];
-                          updatedData[index].videoLength = e.target.value;
+                          updatedData[index] = { ...courseContentData[index] , videoLength : e.target.value};
                           setCourseContentData(updatedData);
                         }}
                       />
                     </div>
-                    
+
 
                     <div className="mb-3">
                       <label className={styles.label}>Video Description</label>
@@ -261,13 +262,14 @@ const CourseContent: FC<Props> = ({
                         value={item.description}
                         onChange={(e) => {
                           const updatedData = [...courseContentData];
-                          updatedData[index].description = e.target.value;
+                          updatedData[index] = { ...courseContentData[index] ,description : e.target.value};
                           setCourseContentData(updatedData);
                         }}
                       />
                       <br />
                     </div>
-                    {item?.links.map((link: any, linkIndex: number) => (
+
+                    {item?.links?.map((link: any, linkIndex: number) => (
                       <div className="mb-3 block" key={linkIndex}>
                         <div className="w-full flex items-center justify-between">
                           <label className={styles.label}>
@@ -293,8 +295,9 @@ const CourseContent: FC<Props> = ({
                           value={link.title}
                           onChange={(e) => {
                             const updatedData = [...courseContentData];
-                            updatedData[index].links[linkIndex].title =
-                              e.target.value;
+                            const updatedLinks = [...courseContentData[index].links];
+                            updatedLinks[linkIndex] = {...courseContentData[index].links[linkIndex] , title : e.target.value};
+                            updatedData[index]= { ...courseContentData[index] , links  : updatedLinks };
                             setCourseContentData(updatedData);
                           }}
                         />
@@ -305,8 +308,9 @@ const CourseContent: FC<Props> = ({
                           value={link.url}
                           onChange={(e) => {
                             const updatedData = [...courseContentData];
-                            updatedData[index].links[linkIndex].url =
-                              e.target.value;
+                            const updatedLinks = [...courseContentData[index].links];
+                            updatedLinks[linkIndex] = {...courseContentData[index].links[linkIndex] , url : e.target.value};
+                            updatedData[index]= { ...courseContentData[index] , links  : updatedLinks };
                             setCourseContentData(updatedData);
                           }}
                         />

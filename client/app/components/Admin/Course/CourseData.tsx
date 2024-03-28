@@ -23,7 +23,7 @@ const CourseData: FC<Props> = ({
 
   const handleBenefitChange = (index: number, value: any) => {
     const updatedBenefits = [...benefits];
-    updatedBenefits[index].title = value;
+    updatedBenefits[index] = { ...benefits[index], title: value };
     setBenefits(updatedBenefits);
   };
 
@@ -33,7 +33,7 @@ const CourseData: FC<Props> = ({
 
   const handlePrerequisitesChange = (index: number, value: any) => {
     const updatedPrerequisites = [...prerequisites];
-    updatedPrerequisites[index].title = value;
+    updatedPrerequisites[index]  = { ...prerequisites[index], title: value };
     setPrerequisites(updatedPrerequisites);
   };
 
@@ -52,7 +52,7 @@ const CourseData: FC<Props> = ({
         toast.error("Please fill the fields for go to next!")
     }
   };
-  
+
 
   return (
     <div className="w-[80%] m-auto mt-24 block">
