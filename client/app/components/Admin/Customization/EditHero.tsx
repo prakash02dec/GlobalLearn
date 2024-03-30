@@ -77,31 +77,6 @@ const EditHero: FC<Props> = (props: Props) => {
             placeholder="We have 40k+ Online courses & 500K+ Online registered student. Find your desired Courses from them."
             className="dark:text-[#edfff4] text-[#000000ac] font-Josefin font-[600] text-[18px] 1500px:!w-[55%] 1100px:!w-[74%] bg-transparent outline-none resize-none"
           ></textarea>
-          <br />
-          <br />
-          <br />
-          <div
-            className={`${
-              styles.button
-            } !w-[100px] !min-h-[40px] !h-[40px] dark:text-white text-black bg-[#cccccc34]
-          ${
-            data?.layout?.banner?.title !== title ||
-            data?.layout?.banner?.subTitle !== subTitle ||
-            data?.layout?.banner?.image?.url !== image
-              ? "!cursor-pointer !bg-[#42d383]"
-              : "!cursor-not-allowed"
-          }
-          !rounded absolute bottom-12 right-12`}
-            onClick={
-              data?.layout?.banner?.title !== title ||
-              data?.layout?.banner?.subTitle !== subTitle ||
-              data?.layout?.banner?.image?.url !== image
-                ? handleEdit
-                : () => null
-            }
-          >
-            Save
-          </div>
         </div>
         <div className="1000px:w-[40%] flex 1000px:min-h-screen items-center justify-start pt-[70px] 1000px:pt-[0] z-10">
           <div className="relative flex items-center justify-start">
@@ -121,6 +96,31 @@ const EditHero: FC<Props> = (props: Props) => {
             <label htmlFor="banner" className="absolute bottom-0 right-0 z-20">
               <AiOutlineCamera className="dark:text-white text-black text-[18px] cursor-pointer" />
             </label>
+          </div>
+          <br />
+          <br />
+          <br />
+          <div
+              className={`${
+                styles.button
+              } !w-[100px] !min-h-[40px] !h-[40px] dark:text-white text-black bg-[#cccccc34]
+            ${
+              data?.layout?.banner?.title !== title ||
+              data?.layout?.banner?.subTitle !== subTitle ||
+              data?.layout?.banner?.image?.url !== image
+                ? "!cursor-pointer !bg-[#42d383]"
+                : "!cursor-not-allowed"
+            }
+            !rounded absolute bottom-12 right-12`}
+              onClick={
+                data?.layout?.banner?.title !== title ||
+                data?.layout?.banner?.subTitle !== subTitle ||
+                data?.layout?.banner?.image?.url !== image
+                  ? handleEdit
+                  : () => null
+              }
+          >
+            Save
           </div>
         </div>
       </div>
