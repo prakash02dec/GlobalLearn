@@ -66,7 +66,7 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
             alt=""
             width={120}
             height={120}
-            className="w-[120px] h-[120px] cursor-pointer border-[3px] border-[#37a39a] rounded-full"
+            className="w-[120px] h-[120px] cursor-pointer border-[3px] border-white rounded-full"
           />
           <input
             type="file"
@@ -77,7 +77,7 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
             accept="image/png,image/jpg,image/jpeg,image/webp"
           />
           <label htmlFor="avatar">
-            <div className="w-[30px] h-[30px] bg-slate-900 rounded-full absolute bottom-2 right-2 flex items-center justify-center cursor-pointer">
+            <div className="w-[30px] h-[30px] bg-white rounded-full absolute bottom-2 right-2 flex items-center justify-center cursor-pointer">
               <AiOutlineCamera size={20} className="z-1" />
             </div>
           </label>
@@ -89,27 +89,27 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
         <form onSubmit={handleSubmit}>
           <div className="800px:w-[50%] m-auto block pb-4">
             <div className="w-[100%]">
-              <label className="block pb-2">Full Name</label>
+              <label className="block pb-2 dark:text-[#fff] text-black">Full Name</label>
               <input
                 type="text"
-                className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
+                className={`${styles.input} !w-[95%] mb-4 800px:mb-0 rounded-[15px]`}
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div className="w-[100%] pt-2">
-              <label className="block pb-2">Email Address</label>
+              <label className="block pb-2 dark:text-[#fff] text-black">Email Address</label>
               <input
                 type="text"
                 readOnly
-                className={`${styles.input} !w-[95%] mb-1 800px:mb-0`}
+                className={`${styles.input} !w-[95%] mb-1 800px:mb-0 rounded-[15px]`}
                 required
                 value={user?.email}
               />
             </div>
             <input
-              className={`w-full 800px:w-[250px] h-[40px] border border-[#37a39a] text-center dark:text-[#fff] text-black rounded-[3px] mt-8 cursor-pointer`}
+              className={`w-full 800px:w-[250px] h-[40px] dark:bg-lime-600 bg-green-700 border border-green-700 text-center dark:text-[#fff] text-[#fff] rounded-[50px] mt-8 cursor-pointer`}
               required
               value="Update"
               type="submit"

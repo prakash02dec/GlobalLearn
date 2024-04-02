@@ -11,7 +11,7 @@ export const reviews = [
     avatar: "https://randomuser.me/api/portraits/men/1.jpg",
     profession: "Student | Cambridge university",
     comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis augue lectus, auctor sed nisi id, tempor aliquam urna. Duis cursus quis tellus vel sodales. Aenean finibus finibus purus, non malesuada massa varius sed. Vestibulum eget ligula nec nisi porttitor mollis. Curabitur in risus in velit dignissim aliquet. Sed vulputate lorem nec neque ornare, a feugiat leo cursus. Phasellus blandit eros condimentum, ultrices lectus sollicitudin, varius leo.",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis augue lectus, auctor sed nisi id, tempor aliquam urna. Duis cursus quis tellus vel sodales. Aenean finibus finibus purus, non malesuada massa varius sed. Vestibulum eget ligula nec nisi porttitor mollis. Curabitur in risus in velit dignissim aliquet.",
   },
   {
     name: "Prakash Agarwal",
@@ -40,12 +40,12 @@ const Reviews = (props: Props) => {
             <br /> See What They Say About Us
           </h3>
           <br />
-          <p className={styles.label}>
+          {/* <p className={styles.label}>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque unde
             voluptatum dignissimos, nulla perferendis dolorem voluptate nemo
             possimus magni deleniti natus accusamus officiis quasi nihil
             commodi, praesentium quidem, quis doloribus?
-          </p>
+          </p> */}
         </div>
         <br />
         <br />

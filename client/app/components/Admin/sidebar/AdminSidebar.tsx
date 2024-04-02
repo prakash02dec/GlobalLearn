@@ -71,17 +71,17 @@ const Sidebar = () => {
       sx={{
         "& .pro-sidebar-inner": {
           background: `${
-            theme === "dark" ? "#111C43 !important" : "#fff !important"
+            theme === "dark" ? "linear-gradient(to bottom, #030712, #1f2937) !important" : "#fff !important"
           }`,
         },
         "& .pro-icon-wrapper": {
           backgroundColor: "transparent !important",
         },
         "& .pro-inner-item:hover": {
-          color: "#868dfb !important",
+          color:`${theme==="dark" ? "#37a39a !important" : "#868dfb !important"}`,
         },
         "& .pro-menu-item.active": {
-          color: "#6870fa !important",
+          color:`${theme==="dark" ? "#37a39a !important" : "#6870fa !important"}`,
         },
         "& .pro-inner-item": {
           padding: "5px 35px 5px 20px !important",
@@ -121,7 +121,7 @@ const Sidebar = () => {
                 ml="15px"
               >
                 <Link href="/" className="block">
-                  <h3 className="text-[25px] font-Poppins uppercase dark:text-white text-black">
+                  <h3 className="text-[25px] font-Poppins dark:text-white text-black">
                     GlobalLearn
                   </h3>
                 </Link>
@@ -146,7 +146,7 @@ const Sidebar = () => {
                   style={{
                     cursor: "pointer",
                     borderRadius: "50%",
-                    border: "3px solid #5b6fe6",
+                    border:`${theme==="dark" ? "3px solid #37a39a" : "3px solid #5b6fe6"}`,
                   }}
                 />
               </Box>

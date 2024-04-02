@@ -49,7 +49,7 @@ const ChangePassword: FC<Props> = (props) => {
             </label>
             <input
               type="password"
-              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff]`}
+              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff] rounded-[15px]`}
               required
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
@@ -61,7 +61,7 @@ const ChangePassword: FC<Props> = (props) => {
             </label>
             <input
               type="password"
-              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff]`}
+              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff] rounded-[15px]`}
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -69,17 +69,17 @@ const ChangePassword: FC<Props> = (props) => {
           </div>
           <div className=" w-[100%] 800px:w-[60%] mt-2">
             <label className="block pb-2 text-black dark:text-[#fff]">
-              Enter your confirm password
+              Confirm your new password
             </label>
             <input
               type="password"
-              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff]`}
+              className={`${styles.input} !w-[95%] mb-4 800px:mb-0 text-black dark:text-[#fff] rounded-[15px]`}
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <input
-              className={`w-[95%] h-[40px] border border-[#37a39a] text-center text-black dark:text-[#fff] rounded-[3px] mt-8 cursor-pointer`}
+              className={`w-[95%] h-[40px] dark:bg-lime-600 bg-green-700 border border-green-700 text-center text-white dark:text-[#fff] rounded-[50px] mt-8 cursor-pointer`}
               required
               value="Update"
               type="submit"

@@ -19,14 +19,14 @@ const CourseOptions: FC<Props> = ({ active, setActive }) => {
         <div key={index} className={`w-full flex py-5`}>
            <div
             className={`w-[35px] h-[35px] rounded-full flex items-center justify-center ${
-              active + 1 > index ? "bg-blue-500" : "bg-[#384766]"
+              active + 1 > index ? "bg-[#37A39A]" : "dark:bg-[#fafafa] bg-[#EBF5F4]"
             } relative`}
           >
             <IoMdCheckmark className="text-[25px]" />
             {index !== options.length - 1 && (
               <div
                 className={`absolute h-[30px] w-1 ${
-                  active + 1 > index ? "bg-blue-500" : "bg-[#384766]"
+                  active + 1 > index ? "bg-[#37A39A]" : "dark:bg-[#fafafa] bg-[#EBF5F4]"
                 } bottom-[-100%]`}
               />
             )}
@@ -35,7 +35,7 @@ const CourseOptions: FC<Props> = ({ active, setActive }) => {
           className={`pl-3 ${
             active === index
               ? "dark:text-white text-black"
-              : "dark:text-white text-black"
+              : "dark:text-[#9e9e9e] text-[#757575]"
           } text-[20px]`}
           >
             {option}

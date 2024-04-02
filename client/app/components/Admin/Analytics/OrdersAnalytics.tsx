@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Loader from "../../Loader/Loader";
+import { useTheme } from "next-themes";
 
 // const analyticsData = [
 //   {
@@ -50,6 +51,7 @@ type Props = {
 
 export default function OrdersAnalytics({ isDashboard }: Props) {
   const {data, isLoading } = useGetOrdersAnalyticsQuery({});
+  const { theme, setTheme } = useTheme();
 
   const analyticsData: any = [];
 
@@ -63,19 +65,19 @@ export default function OrdersAnalytics({ isDashboard }: Props) {
       {isLoading ? (
         <Loader />
       ) : (
-        <div className={isDashboard ? "h-[30vh]" : "h-screen"}>
+        <div className={isDashboard ? "h-[30vh]" : "h-screen" }>
           <div
             className={isDashboard ? "mt-[0px] pl-[40px] mb-2" : "mt-[50px]"}
           >
             <h1
               className={`${styles.title} ${
                 isDashboard && "!text-[20px]"
-              } px-5 !text-start`}
+              } px-5 !text-center`}
             >
               Orders Analytics
             </h1>
             {!isDashboard && (
-              <p className={`${styles.label} px-5`}>
+              <p className={`${styles.label} px-5 !text-center`}>
                 Last 12 months analytics data{" "}
               </p>
             )}
@@ -105,7 +107,7 @@ export default function OrdersAnalytics({ isDashboard }: Props) {
                 <YAxis />
                 <Tooltip />
                 {!isDashboard && <Legend />}
-                <Line type="monotone" dataKey="Count" stroke="#82ca9d" />
+                <Line type="monotone" dataKey="Count" stroke={theme==="dark" ? "#64ffda" : "#4d62d9"}/>
               </LineChart>
             </ResponsiveContainer>
           </div>

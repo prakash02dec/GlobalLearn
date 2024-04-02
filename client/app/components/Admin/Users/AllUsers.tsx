@@ -193,12 +193,12 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
 
               "& .MuiDataGrid-columnHeaders": {
                 backgroundColor:
-                  theme === "dark" ? `#3e4396 !important` : "#A4A9FC",
+                  theme === "dark" ? `#3e4396 !important` : "#A4A9FC !important",
                 borderBottom: "none",
                 color: theme === "dark" ? "#fff" : "#000",
               },
               "& .MuiDataGrid-container--top [role=row], & .MuiDataGrid-container--bottom [role=row]":{
-                backgroundColor:theme === "dark" ? `#3e4396 !important` : "#A4A9FC",
+                backgroundColor:theme === "dark" ? `#3e4396 !important` : "#A4A9FC !important",
               },
               "& .MuiDataGrid-virtualScroller": {
                 backgroundColor: theme === "dark" ? "#1F2A40" : "#F2F0F0",

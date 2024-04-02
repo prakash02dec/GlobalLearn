@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Loader from "../../Loader/Loader"
+import { useTheme } from "next-themes";
 
 type Props = {
   isDashboard?: boolean;
@@ -32,6 +33,7 @@ type Props = {
 
 const UserAnalytics = ({isDashboard}:Props) => {
   const { data, isLoading } = useGetUsersAnalyticsQuery({});
+  const { theme, setTheme } = useTheme();
 
  const analyticsData: any = [];
 
@@ -47,14 +49,14 @@ const UserAnalytics = ({isDashboard}:Props) => {
         isLoading ? (
             <Loader />
         ) : (
-            <div className={`${!isDashboard ? "mt-[50px]" : "mt-[50px] dark:bg-[#111C43] shadow-sm pb-5 rounded-sm"}`}>
+            <div className={`${!isDashboard ? "mt-[50px]" : "mt-[50px] dark:bg-gradient-to-t dark:from-gray-950 dark:to-gray-800 shadow-sm pb-5 rounded-[50px]"}`}>
             <div className={`${isDashboard ? "!ml-8 mb-5" : ''}`}>
-            <h1 className={`${styles.title} ${isDashboard && '!text-[20px]'} px-5 !text-start`}>
+            <h1 className={`${styles.title} ${isDashboard && '!text-[20px]'} px-5 !text-center`}>
                Users Analytics
              </h1>
              {
                !isDashboard && (
-                 <p className={`${styles.label} px-5`}>
+                 <p className={`${styles.label} px-5 !text-center`}>
                  Last 12 months analytics data{" "}
                </p>
                )
@@ -78,8 +80,8 @@ const UserAnalytics = ({isDashboard}:Props) => {
                <Area
                  type="monotone"
                  dataKey="count"
-                 stroke="#4d62d9"
-                 fill="#4d62d9"
+                 stroke={theme==="dark" ? "#64ffda" : "#4d62d9"}
+                 fill={theme==="dark"  ?  "#1de9b6"  :  "#4d62d9"}
                />
              </AreaChart>
            </ResponsiveContainer>

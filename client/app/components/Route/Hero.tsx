@@ -44,7 +44,7 @@ const Hero: FC<Props> = (props) => {
                 placeholder="Search Courses..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent border dark:border-none dark:bg-[#575757] dark:placeholder:text-[#ffffffdd] rounded-[5px] p-2 w-full h-full outline-none text-[#0000004e] dark:text-[#ffffffe6] text-[20px] font-[500] font-Josefin"
+                className="bg-transparent border dark:border-none dark:bg-[#575757] dark:placeholder:text-[#ffffffdd] rounded-[5px] p-2 w-full h-full outline-none text-[#000000e6] dark:text-[#ffffffe6] text-[20px] font-[500] font-Josefin"
               />
               <div
                 className="absolute flex items-center justify-center w-[50px] cursor-pointer h-[50px] right-0 top-0 bg-[#39c1f3] rounded-r-[5px]"

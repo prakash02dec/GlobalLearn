@@ -94,12 +94,12 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
   return (
     <div className="mt-[30px] min-h-screen">
       <div className="grid grid-cols-[75%,25%]">
-        <div className="p-8 ">
+        <div className="p-8">
           <UserAnalytics isDashboard={true} />
         </div>
 
         <div className="pt-[80px] pr-8">
-          <div className="w-full dark:bg-[#111C43] rounded-sm shadow">
+          <div className="w-full dark:bg-gradient-to-b dark:from-gray-950 dark:to-gray-700 rounded-[50px] shadow">
             <div className="flex items-center p-5 justify-between">
               <div className="">
                 <BiBorderLeft className="dark:text-[#45CBA0] text-[#000] text-[30px]" />
@@ -116,7 +116,7 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
                   ? 100 
                   : 0
                 } open={open} />
-                <h5 className="text-center pt-4">
+                <h5 className="text-center pt-4 dark:text-white text-black">
                  {
                   ordersComparePercentage?.percentChange > 0 
                   ? "+" + ordersComparePercentage?.percentChange.toFixed(2)
@@ -127,7 +127,7 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
             </div>
           </div>
 
-          <div className="w-full dark:bg-[#111C43] rounded-sm shadow my-8">
+          <div className="w-full dark:bg-gradient-to-b dark:from-gray-950 dark:to-gray-700 rounded-[50px] shadow my-8">
             <div className="flex items-center p-5 justify-between">
               <div className="">
                 <PiUsersFourLight className="dark:text-[#45CBA0] text-[#000] text-[30px]" />
@@ -144,7 +144,7 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
                   ? 100 
                   : 0
                 } open={open} />
-                <h5 className="text-center pt-4">
+                <h5 className="text-center pt-4 dark:text-white text-black">
                   {userComparePercentage?.percentChange > 0
                     ? "+" + userComparePercentage?.percentChange.toFixed(2) 
                     : "-" + userComparePercentage?.percentChange.toFixed(2)} %
@@ -156,10 +156,10 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
       </div>
 
       <div className="grid grid-cols-[65%,35%] mt-[-20px]">
-        <div className="dark:bg-[#111c43] w-[94%] mt-[30px] h-[40vh] shadow-sm m-auto">
+        <div className="dark:bg-gradient-to-t dark:from-gray-950 dark:to-gray-800 w-[94%] mt-[30px] h-[40vh] shadow-sm rounded-[50px] m-auto">
           <OrdersAnalytics isDashboard={true} />
         </div>
-        <div className="p-5">
+        <div className="p-5 dark:bg-gradient-to-b dark:from-gray-950 dark:to-gray-700 rounded-[50px]">
           <h5 className="dark:text-[#fff] text-black text-[20px] font-[400] font-Poppins pb-3">
             Recent Transactions
           </h5>
