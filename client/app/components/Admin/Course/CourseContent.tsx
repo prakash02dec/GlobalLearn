@@ -48,6 +48,16 @@ const CourseContent: FC<Props> = ({
     updatedData[index] = { ...courseContentData[index], links };
     setCourseContentData(updatedData);
   };
+  const handleVideoUpload = (files: FileList | null, index: number) => {
+    if (files && files.length > 0) {
+      const file = files[0];
+      const updatedData = [...courseContentData];
+      updatedData[index].videoFile = file;
+      setCourseContentData(updatedData);
+    } else {
+      console.error("No file selected for upload.");
+    }
+  };
 
   const newContentHandler = (item: any) => {
     if (
@@ -72,6 +82,7 @@ const CourseContent: FC<Props> = ({
         }
       }
       const newContent = {
+        //videoFile: null,
         videoUrl: "",
         title: "",
         description: "",
@@ -213,6 +224,17 @@ const CourseContent: FC<Props> = ({
                 </div>
                 {!isCollapsed[index] && (
                   <>
+                    {/* <div className="mb-3">
+                      <label className={styles.label}>Upload Video</label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) =>
+                          handleVideoUpload(e.target.files, index)
+                        }
+                        className={`${styles.input}`}
+                      />
+                    </div> */}
                     <div className="my-3">
                       <label className={styles.label}>Video Title</label>
                       <input

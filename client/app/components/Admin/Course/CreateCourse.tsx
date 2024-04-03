@@ -8,7 +8,7 @@ import CoursePreview from "./CoursePreview";
 import { useCreateCourseMutation } from "../../../../redux/features/courses/coursesApi";
 import { toast } from "react-hot-toast";
 import { redirect } from "next/navigation";
-
+import AWS from "aws-sdk";
 type Props = {};
 
 const CreateCourse = (props: Props) => {
@@ -36,7 +36,7 @@ const CreateCourse = (props: Props) => {
     estimatedPrice: "",
     tags: "",
     level: "",
-    categories:"",
+    categories: "",
     demoUrl: "",
     thumbnail: "",
   });
@@ -44,6 +44,7 @@ const CreateCourse = (props: Props) => {
   const [prerequisites, setPrerequisites] = useState([{ title: "" }]);
   const [courseContentData, setCourseContentData] = useState([
     {
+      //videoFile: null,
       videoUrl: "",
       title: "",
       description: "",
@@ -58,10 +59,31 @@ const CreateCourse = (props: Props) => {
       suggestion: "",
     },
   ]);
-
-
+  // AWS.config.update({
+  //   accessKeyId: ,
+  //   secretAccessKey: ,
+  //   region: "ap-south-1",
+  // });
+  // const s3 = new AWS.S3();
+  // const uploadFileToS3 = (file: any, fileName: any, bucketName: any) => {
+  //   const params = {
+  //     Bucket: bucketName,
+  //     Key: fileName,
+  //     Body: file,
+  //   };
+  //   return new Promise((resolve, reject) => {
+  //     s3.upload(params, (err: any, data: any) => {
+  //       if (err) {
+  //         console.log(err);
+  //         reject(err);
+  //       } else {
+  //         console.log("no error");
+  //         resolve(data.Location); // Returns the URL of the uploaded file
+  //       }
+  //     });
+  //   });
+  // };
   const [courseData, setCourseData] = useState({});
-
 
   const handleSubmit = async () => {
     // Format benefits array
@@ -72,7 +94,20 @@ const CreateCourse = (props: Props) => {
     const formattedPrerequisites = prerequisites.map((prerequisite) => ({
       title: prerequisite.title,
     }));
+    // for (let i = 0; i < courseContentData.length; i++) {
+    //   const file = courseContentData[i].videoFile;
+    //   const fileName = courseContentData[i].videoFile.name;
+    //   const bucketName = "globallearn";
 
+    //   uploadFileToS3(file, fileName, bucketName)
+    //     .then((fileUrl) => {
+    //       console.log("File uploaded successfully:", fileUrl);
+    //     })
+    //     .catch((error) => {
+    //       console.error("Error uploading file:", error);
+    //     });
+    //   console.log(courseContentData[0].videoFile);
+    // }
     // Format course content array
     const formattedCourseContentData = courseContentData.map(
       (courseContent) => ({
@@ -88,7 +123,6 @@ const CreateCourse = (props: Props) => {
         suggestion: courseContent.suggestion,
       })
     );
-
     //   prepare our data object
     const data = {
       name: courseInfo.name,
