@@ -12,19 +12,28 @@ import re
 from urllib.request import urlopen
 import aiohttp
 import asyncio
+import os
 
-from dub.Scripts.shared_imports import *
-import dub.Scripts.auth as auth
+from dotenv import load_dotenv
+load_dotenv()
+
+
+import sys
+import traceback
+import regex
+import dub.Scripts.shared_imports as shared_imports
+shared_imports.set_up_config()
+
 import dub.Scripts.utils as utils
+from dubbing.settings import GOOGLE_TTS_API
 
 # Get variables from config
 
-
-ELEVENLABS_API_KEY = cloudConfig['elevenlabs_api_key']
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 # Get List of Voices Available
 def get_voices():
-    voices = auth.GOOGLE_TTS_API.voices().list().execute()
+    voices = GOOGLE_TTS_API.voices().list().execute()
     voices_json = json.dumps(voices)
     return voices_json
 
@@ -54,7 +63,7 @@ def add_interpretas_tags(text):
         # Get entry info
         entryText = entryDict['Text']
         entryInterpretAsType = entryDict['interpret-as Type']
-        isCaseSensitive = parseBool(entryDict['Case Sensitive (True/False)'])
+        isCaseSensitive = shared_imports.parseBool(entryDict['Case Sensitive (True/False)'])
         entryFormat = entryDict['Format (Optional)']
 
         # Create say-as tag
@@ -90,7 +99,7 @@ def add_alias_tags(text):
         if entryDict['Case Sensitive (True/False)'] == "":
             isCaseSensitive = False
         else:
-            isCaseSensitive = parseBool(entryDict['Case Sensitive (True/False)'])
+            isCaseSensitive = shared_imports.parseBool(entryDict['Case Sensitive (True/False)'])
 
         # Find and replace the word
         findWordRegex = rf'\b["\'()]?{entryText}[.,!?()]?["\']?\b' # Find the word, with optional punctuation after, and optional quotes before or after
@@ -112,7 +121,7 @@ def add_phoneme_tags(text):
         if entryDict['Case Sensitive (True/False)'] == "":
             isCaseSensitive = False
         else:
-            isCaseSensitive = parseBool(entryDict['Case Sensitive (True/False)'])
+            isCaseSensitive = shared_imports.parseBool(entryDict['Case Sensitive (True/False)'])
 
         # Find and replace the word
         findWordRegex = rf'(\b["\'()]?{entryText}[.,!?()]?["\']?\b)' # Find the word, with optional punctuation after, and optional quotes before or after
@@ -125,7 +134,7 @@ def add_phoneme_tags(text):
 
 
 # Build API request for google text to speech, then execute
-def synthesize_text_google(text, speedFactor, voiceName, voiceGender, languageCode, audioEncoding=config['synth_audio_encoding'].upper()):
+def synthesize_text_google(text, speedFactor, voiceName, voiceGender, languageCode, audioEncoding= shared_imports.config['synth_audio_encoding'].upper()):
 
     # Keep speedFactor between 0.25 and 4.0
     if speedFactor < 0.25:
@@ -136,7 +145,7 @@ def synthesize_text_google(text, speedFactor, voiceName, voiceGender, languageCo
     # API Info at https://texttospeech.googleapis.com/$discovery/rest?version=v1
     # Try, if error regarding quota, waits a minute and tries again
     def send_request(speedFactor):
-        response = auth.GOOGLE_TTS_API.text().synthesize(
+        response = GOOGLE_TTS_API.text().synthesize(
             body={
                 'input':{
                     "text": text
@@ -284,7 +293,7 @@ async def synthesize_dictionary_async(subsDict, langDict, skipSynthesize=False, 
     tasks = []
 
     for key, value in subsDict.items():
-        if not skipSynthesize and cloudConfig['tts_service'] == "elevenlabs":
+        if not skipSynthesize and shared_imports.cloudConfig['tts_service'] == "elevenlabs":
             task = asyncio.create_task(synthesize_and_save(key, value))
             tasks.append(task)
 
@@ -324,12 +333,12 @@ def synthesize_dictionary(subsDict, langDict, skipSynthesize=False, secondPass=F
                     print("Error creating directory")
 
             # If Google TTS, use Google API
-            if cloudConfig['tts_service'] == "google":
+            if shared_imports.cloudConfig['tts_service'] == "google":
                 audio = synthesize_text_google(value['translated_text'], speedFactor, langDict['voiceName'], langDict['voiceGender'], langDict['languageCode'])
                 with open(filePath, "wb") as out:
                     out.write(audio)
 
-                if config['debug_mode'] and secondPass == True:
+                if shared_imports.config['debug_mode'] and secondPass == True:
                     with open(filePathStem+"_pass2.mp3", "wb") as out:
                         out.write(audio)
 

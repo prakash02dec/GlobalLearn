@@ -5,9 +5,14 @@ import pathlib
 import os
 import io
 import math
+import sys
 from platform import system as sysPlatform
+import re
+import regex
 
-from dub.Scripts.shared_imports import *
+import dub.Scripts.shared_imports as shared_imports
+shared_imports.set_up_config()
+
 import dub.Scripts.TTS as TTS
 
 from pydub import AudioSegment
@@ -86,19 +91,19 @@ def stretch_audio_clip(audioFileToStretch, speedFactor, num):
     audioObj, sampleRate = soundfile.read(audioFileToStretch) # auddioObj is a numpy array
 
     # Stretch the audio using user specified method
-    if config['local_audio_stretch_method'] == 'ffmpeg':
+    if shared_imports.config['local_audio_stretch_method'] == 'ffmpeg':
         stretched_audio = stretch_with_ffmpeg(audioFileToStretch, speedFactor)
         virtualTempAudioFile.write(stretched_audio)
-        if config['debug_mode']:
+        if shared_imports.config['debug_mode']:
             # For debugging, save the stretched audio file using soundfile
             debug_file_path = os.path.join(workingFolder, f'{num}_stretched_ffmpeg.wav')
             with open(debug_file_path, 'wb') as f:
                 f.write(stretched_audio)
-    elif config['local_audio_stretch_method'] == 'rubberband':
+    elif shared_imports.config['local_audio_stretch_method'] == 'rubberband':
         stretched_audio = stretch_with_rubberband(audioObj, sampleRate, speedFactor)
         #soundfile.write(f'{workingFolder}\\temp_stretched.wav', streched_audio, sampleRate)
         soundfile.write(virtualTempAudioFile, stretched_audio, sampleRate, format='wav')
-        if config['debug_mode']:
+        if shared_imports.config['debug_mode']:
             soundfile.write(os.path.join(workingFolder, f'{num}_stretched.wav'), stretched_audio, sampleRate) # For debugging, saves the stretched audio files
 
     return AudioSegment.from_file(virtualTempAudioFile, format="wav")
@@ -123,7 +128,7 @@ def build_audio(subsDict, langDict, totalAudioLength, twoPassVoiceSynth=False):
                 print("\nERROR: An expected file was not found. This is likely because the TTS service failed to synthesize the audio. Refer to any error messages above.")
             sys.exit()
         trimmedClip = trim_clip(rawClip)
-        if config['debug_mode']:
+        if shared_imports.config['debug_mode']:
             trimmedClip.export(filePathTrimmed, format="wav")
 
         # Create virtual file in dictionary with audio to be read later
@@ -143,18 +148,18 @@ def build_audio(subsDict, langDict, totalAudioLength, twoPassVoiceSynth=False):
 
     # Decide if doing two pass voice synth
     servicesToUseTwoPass = ['google']
-    if cloudConfig['tts_service'] not in servicesToUseTwoPass:
+    if shared_imports.cloudConfig['tts_service'] not in servicesToUseTwoPass:
         twoPassVoiceSynth = False
 
     # If two pass voice synth is enabled, have API re-synthesize the clips at the new speed
     if twoPassVoiceSynth == True:
-        subsDict = TTS.synthesize_dictionary(subsDict, langDict, skipSynthesize=config['skip_synthesize'], secondPass=True)
+        subsDict = TTS.synthesize_dictionary(subsDict, langDict, skipSynthesize=shared_imports.config['skip_synthesize'], secondPass=True)
 
         for key, value in subsDict.items():
             # Trim the clip and re-write file
             rawClip = AudioSegment.from_file(value['TTS_FilePath'], format="mp3")
             trimmedClip = trim_clip(rawClip)
-            if config['debug_mode']:
+            if shared_imports.config['debug_mode']:
                 # Remove '.wav' from the end of the file path
                 secondPassTrimmedFile = value['TTS_FilePath_Trimmed'][:-4] + "_p2_trimmed.wav"
                 trimmedClip.export(secondPassTrimmedFile, format="wav")
@@ -163,7 +168,7 @@ def build_audio(subsDict, langDict, totalAudioLength, twoPassVoiceSynth=False):
             print(f" Trimmed Audio (2nd Pass): {keyIndex+1} of {len(subsDict)}", end="\r")
         print("\n")
 
-        if config['force_stretch_with_twopass'] == True:
+        if shared_imports.config['force_stretch_with_twopass'] == True:
             for key, value in subsDict.items():
                 subsDict = get_speed_factor(subsDict, virtualTrimmedFileDict[key], value['duration_ms'], num=key)
                 keyIndex = list(subsDict.keys()).index(key)
@@ -173,7 +178,7 @@ def build_audio(subsDict, langDict, totalAudioLength, twoPassVoiceSynth=False):
     canvas = create_canvas(totalAudioLength)
 
     for key, value in subsDict.items():
-        if ((not twoPassVoiceSynth or config['force_stretch_with_twopass'] == True) ) or config['force_always_stretch'] == True:
+        if ((not twoPassVoiceSynth or shared_imports.config['force_stretch_with_twopass'] == True) ) or shared_imports.config['force_always_stretch'] == True:
             #stretchedClip = stretch_audio_clip(value['TTS_FilePath_Trimmed'], speedFactor=subsDict[key]['speed_factor'], num=key)
             stretchedClip = stretch_audio_clip(virtualTrimmedFileDict[key], speedFactor=subsDict[key]['speed_factor'], num=key)
         else:
@@ -199,14 +204,14 @@ def build_audio(subsDict, langDict, totalAudioLength, twoPassVoiceSynth=False):
 
     lang = langcodes.get(langDict['languageCode'])
     langName = langcodes.get(langDict['languageCode']).get(lang.to_alpha3()).display_name()
-    if config['debug_mode'] and not os.path.isfile(ORIGINAL_VIDEO_PATH):
+    if shared_imports.config['debug_mode'] and not os.path.isfile(shared_imports.ORIGINAL_VIDEO_PATH):
         outputFileName = "debug" + f" - {langName} - {langDict['languageCode']}."
     else:
-        outputFileName = pathlib.Path(ORIGINAL_VIDEO_PATH).stem + f" - {langName} - {langDict['languageCode']}."
+        outputFileName = pathlib.Path(shared_imports.ORIGINAL_VIDEO_PATH).stem + f" - {langName} - {langDict['languageCode']}."
     # Set output path
-    outputFileName = os.path.join(OUTPUT_FOLDER, outputFileName)
+    outputFileName = os.path.join(shared_imports.OUTPUT_FOLDER, outputFileName)
 
-    outputFormat=config['output_format'].lower()
+    outputFormat=shared_imports.config['output_format'].lower()
     if outputFormat == "mp3":
         outputFileName += "mp3"
         formatString = "mp3"

@@ -1,7 +1,11 @@
-# Imports
-from dub.Scripts.shared_imports import *
-import dub.Scripts.auth as auth
+import re
+import regex
+
+import dub.Scripts.shared_imports as shared_imports
+shared_imports.set_up_config()
+
 import dub.Scripts.utils as utils
+from dubbing.settings import GOOGLE_TRANSLATE_API, DEEPL_API
 
 import configparser
 from operator import itemgetter
@@ -200,11 +204,11 @@ def translate_with_google_and_process(textList, targetLanguage):
 
     combinedChunkTextString = add_marker_and_convert_to_string(textList, customMarkerTag=customMarkerTag)
 
-    response = auth.GOOGLE_TRANSLATE_API.projects().translateText(
-        parent='projects/' + cloudConfig['google_project_id'],
+    response = GOOGLE_TRANSLATE_API.projects().translateText(
+        parent='projects/' + shared_imports.cloudConfig['google_project_id'],
         body={
             'contents': combinedChunkTextString,
-            'sourceLanguageCode': config['original_language'],
+            'sourceLanguageCode': shared_imports.config['original_language'],
             'targetLanguageCode': targetLanguage,
             'mimeType': 'text/html',
             #'model': 'nmt',
@@ -226,7 +230,7 @@ def translate_with_deepl_and_process(textList, targetLanguage, formality=None, c
     textListToSend = [combinedChunkTextString]
 
     # Send the Request, then extract translated text as string from the response
-    result = auth.DEEPL_API.translate_text(textListToSend, target_lang=targetLanguage, formality=formality, tag_handling='xml', ignore_tags=[customNoTranslateTag, 'xxx'])
+    result = DEEPL_API.translate_text(textListToSend, target_lang=targetLanguage, formality=formality, tag_handling='xml', ignore_tags=[customNoTranslateTag, 'xxx'])
     translatedText = result[0].text
 
     pattern = r'[（(]\s*<xxx>\s*[）)]'
@@ -351,18 +355,18 @@ def translate_dictionary(inputSubsDict, langDict, skipTranslation=False, transcr
 
 
 
-    combinedProcessedDict = combine_subtitles_advanced(inputSubsDict, int(config['combine_subtitles_max_chars']))
+    combinedProcessedDict = combine_subtitles_advanced(inputSubsDict, int(shared_imports.config['combine_subtitles_max_chars']))
 
-    if skipTranslation == False or config['debug_mode'] == True or forceNativeSRTOutput == True:
+    if skipTranslation == False or shared_imports.config['debug_mode'] == True or forceNativeSRTOutput == True:
         # Use video file name to use in the name of the translate srt file, also display regular language name
         lang = langcodes.get(targetLanguage).display_name()
 
         if forceNativeSRTOutput:
-            translatedSrtFileName = pathlib.Path(ORIGINAL_VIDEO_PATH).stem + f"- Original_Combined - {lang} - {targetLanguage}.srt"
+            translatedSrtFileName = pathlib.Path(shared_imports.ORIGINAL_VIDEO_PATH).stem + f"- Original_Combined - {lang} - {targetLanguage}.srt"
         else:
-            translatedSrtFileName = pathlib.Path(ORIGINAL_VIDEO_PATH).stem + f" - {lang} - {targetLanguage}.srt"
+            translatedSrtFileName = pathlib.Path(shared_imports.ORIGINAL_VIDEO_PATH).stem + f" - {lang} - {targetLanguage}.srt"
         # Set path to save translated srt file
-        translatedSrtFileName = os.path.join(OUTPUT_FOLDER, translatedSrtFileName)
+        translatedSrtFileName = os.path.join(shared_imports.OUTPUT_FOLDER, translatedSrtFileName)
 
         # Write new srt file with translated text
         with open(translatedSrtFileName, 'w', encoding='utf-8-sig') as f:
@@ -373,13 +377,13 @@ def translate_dictionary(inputSubsDict, langDict, skipTranslation=False, transcr
                 f.write('\n')
 
         # Write debug version if applicable
-        if config['debug_mode']:
-            if os.path.isfile(ORIGINAL_VIDEO_PATH):
-                DebugSrtFileName = pathlib.Path(ORIGINAL_VIDEO_PATH).stem + f" - {lang} - {targetLanguage}.DEBUG.txt"
+        if shared_imports.config['debug_mode']:
+            if os.path.isfile(shared_imports.ORIGINAL_VIDEO_PATH):
+                DebugSrtFileName = pathlib.Path(shared_imports.ORIGINAL_VIDEO_PATH).stem + f" - {lang} - {targetLanguage}.DEBUG.txt"
             else:
                 DebugSrtFileName = "debug" + f" - {lang} - {targetLanguage}.DEBUG.txt"
 
-            DebugSrtFileName = os.path.join(OUTPUT_FOLDER, DebugSrtFileName)
+            DebugSrtFileName = os.path.join(shared_imports.OUTPUT_FOLDER, DebugSrtFileName)
 
             with open(DebugSrtFileName, 'w', encoding='utf-8-sig') as f:
                 for key in combinedProcessedDict:
@@ -404,15 +408,15 @@ def translate_dictionary(inputSubsDict, langDict, skipTranslation=False, transcr
 def set_translation_info(languageBatchDict):
     newBatchSettingsDict = copy.deepcopy(languageBatchDict)
 
-    if config['skip_translation'] == True:
+    if shared_imports.config['skip_translation'] == True:
         for langNum, langInfo in languageBatchDict.items():
             newBatchSettingsDict[langNum]['translate_service'] = None
             newBatchSettingsDict[langNum]['formality'] = None
         return newBatchSettingsDict
 
     # Set the translation service for each language
-    if cloudConfig['translate_service'] == 'deepl':
-        langSupportResponse = auth.DEEPL_API.get_target_languages()
+    if shared_imports.cloudConfig['translate_service'] == 'deepl':
+        langSupportResponse = DEEPL_API.get_target_languages()
         supportedLanguagesList = list(map(lambda x: str(x.code).upper(), langSupportResponse))
 
 
@@ -434,9 +438,9 @@ def set_translation_info(languageBatchDict):
                 # Set translation service to DeepL
                 newBatchSettingsDict[langNum]['translate_service'] = 'deepl'
                 # Setting to 'prefer_more' or 'prefer_less' will it will default to 'default' if formality not supported
-                if config['formality_preference'] == 'more':
+                if shared_imports.config['formality_preference'] == 'more':
                     newBatchSettingsDict[langNum]['formality'] = 'prefer_more'
-                elif config['formality_preference'] == 'less':
+                elif shared_imports.config['formality_preference'] == 'less':
                     newBatchSettingsDict[langNum]['formality'] = 'prefer_less'
                 else:
                     # Set formality to None if not supported for that language
@@ -448,7 +452,7 @@ def set_translation_info(languageBatchDict):
                 newBatchSettingsDict[langNum]['formality'] = None
 
     # If using Google, set all languages to use Google in dictionary
-    elif cloudConfig['translate_service'] == 'google':
+    elif shared_imports.cloudConfig['translate_service'] == 'google':
         for langNum, langInfo in languageBatchDict.items():
             newBatchSettingsDict[langNum]['translate_service'] = 'google'
             newBatchSettingsDict[langNum]['formality'] = None
@@ -463,12 +467,12 @@ def set_translation_info(languageBatchDict):
 #======================================== Combine Subtitle Lines ================================================
 def combine_subtitles_advanced(inputDict, maxCharacters=200):
     # Set gap threshold, the maximum gap between subtitles to combine
-    if 'subtitle_gap_threshold_milliseconds' in config:
-        gapThreshold = int(config['subtitle_gap_threshold_milliseconds'])
+    if 'subtitle_gap_threshold_milliseconds' in shared_imports.config:
+        gapThreshold = int(shared_imports.config['subtitle_gap_threshold_milliseconds'])
     else:
         gapThreshold = 200
 
-    if ('speech_rate_goal' in config and config['speech_rate_goal'] == 'auto') or ('speech_rate_goal' not in config):
+    if ('speech_rate_goal' in shared_imports.config and shared_imports.config['speech_rate_goal'] == 'auto') or ('speech_rate_goal' not in shared_imports.config):
         totalCharacters = 0
         totalDuration = 0
         for key, value in inputDict.items():
@@ -477,7 +481,7 @@ def combine_subtitles_advanced(inputDict, maxCharacters=200):
         charRateGoal = totalCharacters / totalDuration
         charRateGoal = round(charRateGoal, 2)
     else:
-        charRateGoal = config['speech_rate_goal']
+        charRateGoal = shared_imports.config['speech_rate_goal']
 
     # Don't change this, it is not an option, it is for keeping track
     noMorePossibleCombines = False
@@ -573,7 +577,7 @@ def combine_single_pass(entryListLocal, charRateGoal, gapThreshold, maxCharacter
                 del entryListLocal[i]
 
 
-            if 'increase_max_chars_for_extreme_speeds' in config and config['increase_max_chars_for_extreme_speeds'] == True:
+            if 'increase_max_chars_for_extreme_speeds' in shared_imports.config and shared_imports.config['increase_max_chars_for_extreme_speeds'] == True:
                 if data['char_rate'] > 28:
                     tempMaxChars = maxCharacters + 100
                 elif data['char_rate'] > 27:
@@ -612,8 +616,8 @@ def combine_single_pass(entryListLocal, charRateGoal, gapThreshold, maxCharacter
             if not considerNext and not considerPrev:
                 continue
 
-            if 'prioritize_avoiding_fragmented_speech' in config: # In case user didn't update config file
-                preferSentenceEnd = config['prioritize_avoiding_fragmented_speech']
+            if 'prioritize_avoiding_fragmented_speech' in shared_imports.config: # In case user didn't update config file
+                preferSentenceEnd = shared_imports.config['prioritize_avoiding_fragmented_speech']
             else:
                 preferSentenceEnd = True
             if considerNext and considerPrev and preferSentenceEnd == True:

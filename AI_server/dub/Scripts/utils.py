@@ -1,5 +1,4 @@
 import csv
-from dub.Scripts.shared_imports import *
 
 # Interprets a string as a boolean. Returns True or False
 def parseBool(string, silent=False):

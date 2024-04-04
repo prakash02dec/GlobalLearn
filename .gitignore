@@ -130,6 +130,7 @@ dist
 .pnp.*
 
 *.mp4
+*.mp3
 *.srt
 *.aac
 

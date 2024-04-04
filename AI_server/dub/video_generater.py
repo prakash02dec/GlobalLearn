@@ -10,14 +10,20 @@ import pathlib
 import shutil
 from pydub import AudioSegment
 import langcodes
-from dub.Scripts.shared_imports import *
+import dub.Scripts.shared_imports as shared_imports
+shared_imports.set_up_config()
 
+import os
+import sys
+import traceback
+import configparser
+import re
+import regex
 
+def video_generater():
 
-def vedio_generater():
-
-    videoToProcess = ORIGINAL_VIDEO_PATH
-    tracksFolder = OUTPUT_FOLDER
+    videoToProcess = shared_imports.ORIGINAL_VIDEO_PATH
+    tracksFolder = shared_imports.OUTPUT_FOLDER
     defaultLanguage = "english"
 
     tracksToAddDict = {}
@@ -181,4 +187,6 @@ def vedio_generater():
         print("\nCould not delete temp directory. It may not be empty.")
 
     print("")
-    print( ORIGINAL_VIDEO_NAME , " Videos generation completed.")
+    print( shared_imports.ORIGINAL_VIDEO_NAME , " Videos generation completed.")
+
+    return
