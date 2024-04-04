@@ -1,0 +1,46 @@
+This folder contains the following three pronunciation customization files by default.
+
+• dont_translate_phrases.txt
+	- You can add a list of phrases or words you do not want to be translated.
+	- This will work for both Google Translate and DeepL
+
+• interpret-as.csv (Azure Only)
+	- You can use SSML parameters to customize how specific words or phrases are pronounced
+	- See this article for documentation: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-synthesis-markup-pronunciation#say-as-element
+	- Note: The script will match the phrases in the TRANSLATED text. You may therefore wish to also add these phrases to 'dont_translate_phrases.txt'.
+	- The first row contains the titles of each column - Do not change anything in the first row!
+	- Descriptions of each column:
+		• Text: The word or phrase that will be pronounced how you specify, if it is found in the text to be spoken
+		• interpret-as Type: The way in which the word/phrase will be pronounced. See documentation link above. (Some examples include: characters, cardinal, ordinal)
+		• Case Sensitive (True/False): Whether to only modify the pronunciation if the word/phrase matches exactly, being case sensitive
+		• Format (Optional): Only applicable to some types, such as 'date', 'time', and others. Otherwise leave blank. See documentation link above for details
+	- See 'Example - interpret-as.csv' for an example of how to use this file
+	- This will only apply if using Azure TTS, not Google
+	
+• aliases.csv (Azure Only)
+	- Lets you effectively change what should be spoken instead of a certain word or phrase
+	- Example: If the text to be spoken contains "BTW" you can have it say "by the way"
+		-Note: It does NOT actually replace the text, but only changes how the voice will pronounce it
+	- The first row contains the titles of each column - Do not change anything in the first row!
+	- Description of each column:
+		- Original Text: The original word or phrase to match
+		- Alias: The word or phrase to speak instead of the original text
+		- Case Sensitive (True/False): Whether it must be an exact match including capital/lower case. If nothing is entered, will default to False
+	- This will only apply if using Azure TTS, not Google
+
+• Manual_Translations.csv
+	- If you know you are going to use a word that gets incorrectly interpreted or translated, you can enter manual translations for any words for any languages
+	- In Manual_Translations.csv, put the original text in the first column, your translation in the second, and the 2-letter language code for that entry into the 3rd column
+	
+
+• url_list.txt
+	- If you have any URLs in the original text, you can put them as a list in this file
+	- This makes it so the URL will not be translated, and also improves the pronunciation in the TTS stage
+	- It will really only work on basic URLs, such as "example.com/test". If it has anything other than slashes, periods, and colons, it won't work
+	- See the notes at the top of the url_list.txt file for more details
+
+• Phoneme_Pronunciation.csv
+	- Allows you to specify exact phonetic pronunciation of words or phrases
+	- Note: This is different from 'aliases'. Using this requires using special phonetic alphabets (see links below)
+	- See: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-ssml-phonetic-sets
+	- See: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-synthesis-markup-pronunciation#phoneme-element
