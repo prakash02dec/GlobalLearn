@@ -16,6 +16,9 @@ import axios from "axios";
 export const uploadCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = req.body;
+    // console.log("backend req incommmmmmming !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    // console.log(data);
+    // return next(new ErrorHandler("aaaaaaaaaaaaaaaaaaa", 500));
     const thumbnail = data.thumbnail;
     if (thumbnail) {
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
@@ -65,7 +68,7 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
       },
       { new: true }
     );
-    const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+    const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links");
     await redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604800);
     res.status(201).json({
       success: true,
@@ -92,7 +95,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
       });
     }
     else {
-      const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+      const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links");
       await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7 days
       res.status(200).json({
         success: true,
@@ -110,7 +113,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
 export const getAllCourses = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const courses = await CourseModel.find().select(
-      "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+      "-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links"
     );
 
     res.status(200).json({

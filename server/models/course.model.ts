@@ -18,11 +18,15 @@ interface ILink extends Document {
   title: string;
   url: string;
 }
-
+interface IVideoUrl extends Document {
+  language: string;
+  url: string;
+}
 interface ICourseData extends Document {
   title: string;
   description: string;
-  videoUrl: string;
+  s3Url: string;
+  videoUrls: IVideoUrl[];
   videoThumbnail: object;
   videoSection: string;
   videoLength: number;
@@ -32,7 +36,7 @@ interface ICourseData extends Document {
   questions: IComment[];
 }
 
- export interface ICourse extends Document {
+export interface ICourse extends Document {
   name: string;
   description: string;
   categories: string;
@@ -58,10 +62,15 @@ const reviewSchema = new Schema<IReview>({
   },
   comment: String,
   commentReplies: [Object],
-},{timestamps:true});
+}, { timestamps: true });
 
 const linkSchema = new Schema<ILink>({
   title: String,
+  url: String,
+});
+
+const videoUrlSchema = new Schema<IVideoUrl>({
+  language: String,
   url: String,
 });
 
@@ -69,10 +78,11 @@ const commentSchema = new Schema<IComment>({
   user: Object,
   question: String,
   questionReplies: [Object],
-},{timestamps:true});
+}, { timestamps: true });
 
 const courseDataSchema = new Schema<ICourseData>({
-  videoUrl: String,
+  s3Url: String,
+  videoUrls: [videoUrlSchema],
   videoThumbnail: Object,
   title: String,
   videoSection: String,
@@ -93,8 +103,8 @@ const courseSchema = new Schema<ICourse>({
     type: String,
     required: true,
   },
-  categories:{
-    type:String,
+  categories: {
+    type: String,
     required: true,
   },
   price: {
@@ -112,31 +122,31 @@ const courseSchema = new Schema<ICourse>({
       type: String,
     },
   },
-  tags:{
+  tags: {
     type: String,
     required: true,
   },
-  level:{
+  level: {
     type: String,
     required: true,
   },
-  demoUrl:{
+  demoUrl: {
     type: String,
     required: true,
   },
-  benefits: [{title: String}],
-  prerequisites: [{title: String}],
+  benefits: [{ title: String }],
+  prerequisites: [{ title: String }],
   reviews: [reviewSchema],
-   courseData: [courseDataSchema],
-   ratings:{
-     type: Number,
-     default: 0,
-   },
-   purchased:{
+  courseData: [courseDataSchema],
+  ratings: {
     type: Number,
     default: 0,
-   },
-},{timestamps: true});
+  },
+  purchased: {
+    type: Number,
+    default: 0,
+  },
+}, { timestamps: true });
 
 
 const CourseModel: Model<ICourse> = mongoose.model("Course", courseSchema);
