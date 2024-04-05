@@ -12,7 +12,7 @@ import dubbing.settings as settings
 from dub.Scripts.transcribe import download_file_from_s3
 from dub.Scripts.vdocipher_uploader import upload_video_to_vdocipher
 from bson.objectid import ObjectId
-
+import requests
 
 from dubbing.settings import mongoDB
 
@@ -129,7 +129,17 @@ class VideoDubView(APIView):
             # now upload the video to vdocipher and get the video id
             for language , file_path in dub_videos_file_path:
                 print(f"Uploading video to vdocipher for language : {language}")
-                videoId = upload_video_to_vdocipher(f'{video_name} - {language}', file_path)['videoId']
+
+                result = upload_video_to_vdocipher(f'{video_name} - {language}', file_path)
+                try :
+                    result['response'].raise_for_status()
+                except requests.exceptions.HTTPError as err:
+                    return Response({
+                        'success': False,
+                        'message': f'Error uploading video to vdocipher: {err}'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                videoId = result['videoId']
 
                 # Create a new dictionary
                 ispresent = False
