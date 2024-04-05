@@ -17,7 +17,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
+    
 import sys
 import traceback
 import regex
@@ -25,7 +25,7 @@ import dub.Scripts.shared_imports as shared_imports
 shared_imports.set_up_config()
 
 import dub.Scripts.utils as utils
-from dubbing.settings import GOOGLE_TTS_API
+import dubbing.settings as settings
 
 # Get variables from config
 
@@ -33,7 +33,7 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 # Get List of Voices Available
 def get_voices():
-    voices = GOOGLE_TTS_API.voices().list().execute()
+    voices = settings.GOOGLE_TTS_API.voices().list().execute()
     voices_json = json.dumps(voices)
     return voices_json
 
@@ -145,7 +145,7 @@ def synthesize_text_google(text, speedFactor, voiceName, voiceGender, languageCo
     # API Info at https://texttospeech.googleapis.com/$discovery/rest?version=v1
     # Try, if error regarding quota, waits a minute and tries again
     def send_request(speedFactor):
-        response = GOOGLE_TTS_API.text().synthesize(
+        response = settings.GOOGLE_TTS_API.text().synthesize(
             body={
                 'input':{
                     "text": text

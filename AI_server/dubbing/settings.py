@@ -307,3 +307,6 @@ if cloudConfig['translate_service'] == 'deepl':
 
 if cloudConfig['tts_service'] == "google" or (config['skip_translation'] == False and (cloudConfig['translate_service'] == "google" or cloudConfig['use_fallback_google_translate'])):
   GOOGLE_TTS_API, GOOGLE_TRANSLATE_API = first_authentication()
+
+
+VDOCIPHER_API_SECRET = os.getenv('VDOCIPHER_API_SECRET')

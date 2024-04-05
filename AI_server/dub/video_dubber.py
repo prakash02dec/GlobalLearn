@@ -274,16 +274,6 @@ def dub_for_all_lang(video_url, srt_url):
         os.makedirs('workingFolder')
 
 
-    # videoToProcess = ORIGINAL_VIDEO_PATH
-
-    # output_audio_file = f'{os.path.splitext(os.path.basename(videoToProcess))[0]}.mp3'
-    # audioCommand = f'ffmpeg -y -i {videoToProcess} -vn -acodec libmp3lame -q:a 0 {output_audio_file}'
-
-    # print("\n Extracting audio track from the video...")
-    # sp.run(audioCommand)
-
-    # transcribe.transcribe(output_audio_file,videoToProcess)
-
     batch_file_processing()
 
     # Open an srt file and read the lines into a list
@@ -317,5 +307,5 @@ def dub_for_all_lang(video_url, srt_url):
 
     print(shared_imports.ORIGINAL_VIDEO_NAME," : audio dubbing done successfully")
     print("starting video generation...")
-    video_generater.video_generater()
-    return
+    outputFilesPath =  video_generater.video_generater()
+    return outputFilesPath

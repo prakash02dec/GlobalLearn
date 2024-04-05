@@ -24,7 +24,7 @@ def video_generater():
 
     videoToProcess = shared_imports.ORIGINAL_VIDEO_PATH
     tracksFolder = shared_imports.OUTPUT_FOLDER
-    defaultLanguage = "english"
+    defaultLanguage = "English"
 
     tracksToAddDict = {}
 
@@ -151,14 +151,22 @@ def video_generater():
     # Create string for ffmpeg command for each string
     #Example:    sp.run(f'ffmpeg -i "video.mp4" -i "audioTrack.mp3" -map 0 -metadata:s:a:0 language=eng -codec copy output.mp4')
     # In metadata, a=audio, s=stream, 0=first stream, 1=second stream, etc  -  Also: g=global container, c=chapter, p=program
+
+    # [[language, filepath], [language, filePath], ...]
+    outputFilesPath = []
+
     trackStringsCombined = ""
     metadata = f'-metadata:s:a:0 language={defaultLanguage} -metadata:s:a:0 title="{defaultLanguage}" -metadata:s:a:0 handler_name="{defaultLanguage}"'
 
     outputFile = f"{pathlib.Path(videoToProcess).stem} - {defaultLanguage}.mp4"
     outputFile = os.path.join(tracksFolder, outputFile)
     finalCommand = f'ffmpeg -y -i "{videoToProcess}" {trackStringsCombined} -map 0 {metadata} -codec copy "{outputFile}"'
+
+
     # print(finalCommand)
-    sp.run(finalCommand)
+
+    # as default language is already uploaded from the frontend so we dont need to run
+    # sp.run(finalCommand)
 
     for langcode, filePath in tracksToAddDict.items():
 
@@ -173,6 +181,7 @@ def video_generater():
         finalCommand = f'ffmpeg -y -i "{videoToProcess}" {trackStringsCombined} -map 0:v -map 1:a {metadata} -c:v copy  -c:a aac "{outputFile}"'
         # print(finalCommand)
         sp.run(finalCommand)
+        outputFilesPath.append([languageDisplayName , outputFile])
 
 
     # Delete temp files
@@ -189,4 +198,4 @@ def video_generater():
     print("")
     print( shared_imports.ORIGINAL_VIDEO_NAME , " Videos generation completed.")
 
-    return
+    return outputFilesPath

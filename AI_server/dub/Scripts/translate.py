@@ -5,8 +5,7 @@ import dub.Scripts.shared_imports as shared_imports
 shared_imports.set_up_config()
 
 import dub.Scripts.utils as utils
-from dubbing.settings import GOOGLE_TRANSLATE_API, DEEPL_API
-
+import dubbing.settings as settings
 import configparser
 from operator import itemgetter
 import sys
@@ -204,7 +203,7 @@ def translate_with_google_and_process(textList, targetLanguage):
 
     combinedChunkTextString = add_marker_and_convert_to_string(textList, customMarkerTag=customMarkerTag)
 
-    response = GOOGLE_TRANSLATE_API.projects().translateText(
+    response = settings.GOOGLE_TRANSLATE_API.projects().translateText(
         parent='projects/' + shared_imports.cloudConfig['google_project_id'],
         body={
             'contents': combinedChunkTextString,
@@ -230,7 +229,7 @@ def translate_with_deepl_and_process(textList, targetLanguage, formality=None, c
     textListToSend = [combinedChunkTextString]
 
     # Send the Request, then extract translated text as string from the response
-    result = DEEPL_API.translate_text(textListToSend, target_lang=targetLanguage, formality=formality, tag_handling='xml', ignore_tags=[customNoTranslateTag, 'xxx'])
+    result = settings.DEEPL_API.translate_text(textListToSend, target_lang=targetLanguage, formality=formality, tag_handling='xml', ignore_tags=[customNoTranslateTag, 'xxx'])
     translatedText = result[0].text
 
     pattern = r'[（(]\s*<xxx>\s*[）)]'
@@ -416,7 +415,7 @@ def set_translation_info(languageBatchDict):
 
     # Set the translation service for each language
     if shared_imports.cloudConfig['translate_service'] == 'deepl':
-        langSupportResponse = DEEPL_API.get_target_languages()
+        langSupportResponse = settings.DEEPL_API.get_target_languages()
         supportedLanguagesList = list(map(lambda x: str(x.code).upper(), langSupportResponse))
 
 

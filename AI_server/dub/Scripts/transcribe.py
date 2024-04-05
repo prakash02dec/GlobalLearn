@@ -13,10 +13,10 @@ import regex
 import dub.Scripts.shared_imports as shared_imports
 shared_imports.set_up_config()
 
-from dubbing.settings import AWS_SESSION
+import dubbing.settings as settings
 
 
-def upload_file_to_s3(file_path, bucket_name,session):
+def upload_file_to_s3(file_path, bucket_name, session):
 
     s3 = session.client('s3')
     file_name = os.path.basename(file_path)
@@ -29,7 +29,7 @@ def upload_file_to_s3(file_path, bucket_name,session):
         print(f"Error uploading file to S3: {e}")
         return None
 
-def download_file_from_s3(file_uri, file_path,session):
+def download_file_from_s3(file_uri, file_path, session):
     s3 = session.client('s3')
     bucket_name = file_uri.split('/')[2]
     key = file_uri.split('/')[3]
@@ -39,6 +39,7 @@ def download_file_from_s3(file_uri, file_path,session):
         return True
     except Exception as e:
         print(f"Error downloading file from S3: {e}")
+        traceback.print_exc()
         return False
 
 def download_transcript(transcript_file_uri,session,file_name):
@@ -46,7 +47,9 @@ def download_transcript(transcript_file_uri,session,file_name):
     print(transcript_file_uri[0].split('/'))
     response = s3.get_object(Bucket=transcript_file_uri[0].split('/')[3], Key=transcript_file_uri[0].split('/')[4])
     transcript_srt = response['Body'].read().decode('utf-8')
-    with open(f'{file_name}.srt', "w") as f:
+    srt_file_path = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{shared_imports.ORIGINAL_VIDEO_NAME}.srt')
+    print(srt_file_path)
+    with open(srt_file_path, "w") as f:
         f.write(transcript_srt)
     s3.delete_object(Bucket = 'globallearn',Key = f'{file_name}.srt')
     s3.delete_object(Bucket = 'globallearn',Key = f'{file_name}.json')
@@ -101,7 +104,7 @@ def start_transcription_job(transcription_job_name, language_code, media_sample_
 def transcribe(audio_path,videoToProcess):
     print("===============================================Transcribing audio file...===========================================")
 
-    session = AWS_SESSION
+    session = settings.AWS_SESSION
 
     file_path = audio_path
     bucket_name = "globallearn"
