@@ -67,7 +67,7 @@ class VideoDubView(APIView):
         }
         """
 
-        for data in courseData:
+        for content in courseData:
             # first get aws url from course data
             # and by default its english
             # now we need to download the video from aws
@@ -77,7 +77,7 @@ class VideoDubView(APIView):
             # and now append the video url  array with the new url with its respective language
             # save in mongodb
 
-            s3Url = data['s3Url']
+            s3Url = content['s3Url']
             video = s3Url.split('/')[3]
             video_name = video.split('.')[0]
 
@@ -131,27 +131,29 @@ class VideoDubView(APIView):
                 print(f"Uploading video to vdocipher for language : {language}")
                 videoId = upload_video_to_vdocipher(f'{video_name} - {language}', file_path)['videoId']
 
-                # # now append the video url  array with the new url with its respective language
-                # data['videoUrls'].append({
-                #     'language': language,
-                #     'url': videoId
-                # })
+                # Create a new dictionary
+                ispresent = False
 
+                for video_url in content['videoUrls']:
+                    if video_url['language'] == language:
+                        video_url['url'] = videoId
+                        ispresent = True
+                        break
 
-            break
+                if not ispresent:
+                    new_video_url = {
+                        'language': language,
+                        'url': videoId,
+                        '_id': ObjectId()  # This will generate a new ObjectId for each video URL
+                    }
+                    # now append the new video url  array with the new url with its respective language
+                    content['videoUrls'].append(new_video_url)
 
-
-
-
-
-
-
-
-
-        # 660fb1464cdace42a256d3fd
-        # course = courses.find_one({ '_id' : ObjectId('660fb1464cdace42a256d3fd')   })
-        # courseData = course['courseData']
-
+            # save in mongodb
+            courses.update_one(
+                { '_id' : ObjectId(courseId) },
+                { '$set': { 'courseData': courseData } }
+            )
 
         return Response({
             'success': True,

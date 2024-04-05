@@ -21,7 +21,6 @@ def upload_video_to_vdocipher(video_title, video_file_path):
   ############# STEP 2 ####################
 
   uploadInfo = response.json()
-  print(uploadInfo)
 
   clientPayload = uploadInfo['clientPayload']
   videoId = uploadInfo['videoId']
