@@ -11,14 +11,42 @@ import ejs from "ejs";
 import sendMail from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
 import axios from "axios";
-
+import AWS from "aws-sdk";
+const fs = require('fs');
+const Path = require('path');
 // upload course
 export const uploadCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = req.body;
     // console.log("backend req incommmmmmming !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     // console.log(data);
-    // return next(new ErrorHandler("aaaaaaaaaaaaaaaaaaa", 500));
+    const match = req.body.courseData[0].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
+    const [, bucket, key] = match;
+    AWS.config.update({
+      accessKeyId: '',
+      secretAccessKey: '',
+    });
+    async function downloadS3Object(localFilePath: any) {
+      try {
+        const s3 = new AWS.S3();
+        const params = {
+          Bucket: bucket,
+          Key: key,
+        };
+        // Download the object
+        const { Body } = await s3.getObject(params).promise();
+
+        // Write the object content to a local file
+        fs.writeFileSync(localFilePath, Body);
+
+        console.log(`Object downloaded successfully to ${localFilePath}`);
+      } catch (error) {
+        console.error('Error downloading S3 object:', error);
+      }
+    }
+    const localFilePath = path.join(__dirname, `${key}`);
+    downloadS3Object(localFilePath);
+    return next(new ErrorHandler("aaaaaaaaaaaaaaaaaaa", 500));
     const thumbnail = data.thumbnail;
     if (thumbnail) {
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
