@@ -84,7 +84,6 @@ const CreateCourse = (props: Props) => {
           reject(err);
         } else {
           console.log("no error");
-          console.log(data);
           resolve(data.Location); // Returns the URL of the uploaded file
         }
       });
@@ -159,7 +158,6 @@ const CreateCourse = (props: Props) => {
         );
 
         // Use formattedCourseContentData here
-        console.log(formattedCourseContentData);
         //   prepare our data object
         const data = {
           name: courseInfo.name,
