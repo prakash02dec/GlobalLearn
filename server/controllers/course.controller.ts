@@ -11,11 +11,42 @@ import ejs from "ejs";
 import sendMail from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
 import axios from "axios";
-
+import AWS from "aws-sdk";
+const fs = require('fs');
+const Path = require('path');
 // upload course
 export const uploadCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = req.body;
+    // console.log("backend req incommmmmmming !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    // console.log(data);
+    const match = req.body.courseData[0].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
+    const [, bucket, key] = match;
+    AWS.config.update({
+      accessKeyId: '',
+      secretAccessKey: '',
+    });
+    async function downloadS3Object(localFilePath: any) {
+      try {
+        const s3 = new AWS.S3();
+        const params = {
+          Bucket: bucket,
+          Key: key,
+        };
+        // Download the object
+        const { Body } = await s3.getObject(params).promise();
+
+        // Write the object content to a local file
+        fs.writeFileSync(localFilePath, Body);
+
+        console.log(`Object downloaded successfully to ${localFilePath}`);
+      } catch (error) {
+        console.error('Error downloading S3 object:', error);
+      }
+    }
+    const localFilePath = path.join(__dirname, `${key}`);
+    downloadS3Object(localFilePath);
+    return next(new ErrorHandler("aaaaaaaaaaaaaaaaaaa", 500));
     const thumbnail = data.thumbnail;
     if (thumbnail) {
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
@@ -65,7 +96,7 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
       },
       { new: true }
     );
-    const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+    const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links");
     await redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604800);
     res.status(201).json({
       success: true,
@@ -92,7 +123,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
       });
     }
     else {
-      const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+      const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links");
       await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7 days
       res.status(200).json({
         success: true,
@@ -110,7 +141,7 @@ export const getSingleCourse = catchAsyncError(async (req: Request, res: Respons
 export const getAllCourses = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const courses = await CourseModel.find().select(
-      "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+      "-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links"
     );
 
     res.status(200).json({

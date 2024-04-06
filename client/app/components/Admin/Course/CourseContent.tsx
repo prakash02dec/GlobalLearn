@@ -63,7 +63,6 @@ const CourseContent: FC<Props> = ({
     if (
       item.title === "" ||
       item.description === "" ||
-      item.videoUrl === "" ||
       item.links[0].title === "" ||
       item.links[0].url === "" ||
       item.videoLength === ""
@@ -82,8 +81,9 @@ const CourseContent: FC<Props> = ({
         }
       }
       const newContent = {
-        //videoFile: null,
-        videoUrl: "",
+        videoFile: null,
+        s3Url: "",
+        videoUrls: [{ language: "", url: "" }],
         title: "",
         description: "",
         videoSection: newVideoSection,
@@ -100,7 +100,6 @@ const CourseContent: FC<Props> = ({
       courseContentData.length > 0 &&
       (courseContentData[courseContentData.length - 1].title === "" ||
         courseContentData[courseContentData.length - 1].description === "" ||
-        courseContentData[courseContentData.length - 1].videoUrl === "" ||
         courseContentData[courseContentData.length - 1].links[0].title === "" ||
         courseContentData[courseContentData.length - 1].links[0].url === "")
     ) {
@@ -108,7 +107,7 @@ const CourseContent: FC<Props> = ({
     } else {
       setActiveSection(activeSection + 1);
       const newContent = {
-        videoUrl: "",
+        videoUrls: [{ language: "", url: "" }],
         title: "",
         description: "",
         videoLength: "",
@@ -127,7 +126,6 @@ const CourseContent: FC<Props> = ({
     if (
       courseContentData[courseContentData.length - 1].title === "" ||
       courseContentData[courseContentData.length - 1].description === "" ||
-      courseContentData[courseContentData.length - 1].videoUrl === "" ||
       courseContentData[courseContentData.length - 1].links[0].title === "" ||
       courseContentData[courseContentData.length - 1].videoLength === "" ||
       courseContentData[courseContentData.length - 1].links[0].url === ""
@@ -224,7 +222,7 @@ const CourseContent: FC<Props> = ({
                 </div>
                 {!isCollapsed[index] && (
                   <>
-                    {/* <div className="mb-3">
+                    <div className="mb-3">
                       <label className={styles.label}>Upload Video</label>
                       <input
                         type="file"
@@ -234,7 +232,7 @@ const CourseContent: FC<Props> = ({
                         }
                         className={`${styles.input}`}
                       />
-                    </div> */}
+                    </div>
                     <div className="my-3">
                       <label className={styles.label}>Video Title</label>
                       <input
@@ -247,23 +245,6 @@ const CourseContent: FC<Props> = ({
                           updatedData[index] = {
                             ...courseContentData[index],
                             title: e.target.value,
-                          };
-                          setCourseContentData(updatedData);
-                        }}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className={styles.label}>Video Url</label>
-                      <input
-                        type="text"
-                        placeholder="sdder"
-                        className={`${styles.input}`}
-                        value={item.videoUrl}
-                        onChange={(e) => {
-                          const updatedData = [...courseContentData];
-                          updatedData[index] = {
-                            ...courseContentData[index],
-                            videoUrl: e.target.value,
                           };
                           setCourseContentData(updatedData);
                         }}
