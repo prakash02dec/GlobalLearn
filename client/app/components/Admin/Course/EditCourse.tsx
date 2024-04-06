@@ -99,8 +99,8 @@ const EditCourse: FC<Props> = ({ id }) => {
   var [courseData, setCourseData] = useState({});
   AWS.config.update({
     region: "ap-south-1",
-    accessKeyId: "",
-    secretAccessKey: "",
+    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY,
+    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_KEY,
   });
   const s3 = new AWS.S3();
   const uploadFileToS3 = (file: any, fileName: any, bucketName: any) => {
