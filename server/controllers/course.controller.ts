@@ -23,6 +23,7 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     const match = req.body.courseData[0].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
     const [, bucket, key] = match;
     AWS.config.update({
+      region: "ap-south-1",
       accessKeyId: "",
       secretAccessKey: "",
     });
@@ -105,6 +106,54 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     return next(new ErrorHandler(error.message, 500));
   }
 })
+const deleteVdocipher = (async (data: any) => {
+  for (let i = 0; i < data.courseData.length; i++) {
+    for (let j = 0; j < data.courseData[i].videoUrls.length; j++) {
+      const currUrl = data.courseData[i].videoUrls[j].url;
+      try {
+        const url = 'https://dev.vdocipher.com/api/videos';
+        const params = { videos: currUrl }; // Assuming currUrl is the video ID
+        const headers = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Apisecret ${process.env.VDOCIPHER_API_SECRET}`,
+        };
+        const response = await axios.delete(url, { params: params, headers: headers });
+        console.log(response.data); // Handle response data
+      } catch (error) {
+        console.error('Error:', error); // Handle errors
+      }
+    }
+  }
+});
+
+const deleteS3 = (async (data: any) => {
+  for (let i = 0; i < data.courseData.length; i++) {
+    const currS3 = data.courseData[i].s3Url;
+    const match = currS3.match(/^s3:\/\/([^/]+)\/(.+)$/);
+    const [, bucket, key] = match;
+    // Configure AWS SDK with credentials
+    AWS.config.update({
+      region: "ap-south-1",
+      accessKeyId: "",
+      secretAccessKey: "",
+    });
+    // Create an S3 service object
+    const s3 = new AWS.S3();
+    try {
+      // Define the parameters for deleting the object
+      const params = {
+        Bucket: bucket,
+        Key: key
+      };
+      // Delete the object
+      await s3.deleteObject(params).promise();
+      console.log("Object deleted successfully");
+    } catch (error) {
+      console.error("Error deleting object:", error);
+    }
+  }
+});
 
 // edit course
 export const editCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -132,6 +181,8 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
         url: courseData?.thumbnail.url,
       };
     }
+    await deleteS3(data);
+    await deleteVdocipher(data);
     const course = await CourseModel.findByIdAndUpdate(
       courseId,
       {
@@ -483,6 +534,8 @@ export const deleteCourse = catchAsyncError(async (req: Request, res: Response, 
     if (!course) {
       return next(new ErrorHandler("Course not found", 404));
     }
+    await deleteS3(course);
+    await deleteVdocipher(course);
     await course.deleteOne({ id });
     await redis.del(id);
     res.status(200).json({
