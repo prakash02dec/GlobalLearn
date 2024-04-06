@@ -74,7 +74,12 @@ const EditCourse: FC<Props> = ({ id }) => {
   const [prerequisites, setPrerequisites] = useState([{ title: "" }]);
   const [courseContentData, setCourseContentData] = useState([
     {
-      videoUrl: "",
+      videoUrls: [
+        {
+          language: "",
+          url: "",
+        },
+      ],
       title: "",
       description: "",
       videoSection: "Untitled Section",
@@ -104,7 +109,10 @@ const EditCourse: FC<Props> = ({ id }) => {
     // Format course content array
     const formattedCourseContentData = courseContentData.map(
       (courseContent) => ({
-        videoUrl: courseContent.videoUrl,
+        videoUrls: courseContent.videoUrls.map((videoUrl) => ({
+          language: videoUrl.language,
+          url: videoUrl.url,
+        })),
         title: courseContent.title,
         description: courseContent.description,
         videoSection: courseContent.videoSection,
