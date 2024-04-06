@@ -66,9 +66,9 @@ const CreateCourse = (props: Props) => {
     },
   ]);
   AWS.config.update({
+    region: "ap-south-1",
     accessKeyId: "",
     secretAccessKey: "",
-    region: "ap-south-1",
   });
   const s3 = new AWS.S3();
   const uploadFileToS3 = (file: any, fileName: any, bucketName: any) => {
