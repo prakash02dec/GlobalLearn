@@ -9,6 +9,7 @@ import { useCreateCourseMutation } from "../../../../redux/features/courses/cour
 import { toast } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import AWS from "aws-sdk";
+
 type Props = {};
 
 const CreateCourse = (props: Props) => {
@@ -44,7 +45,7 @@ const CreateCourse = (props: Props) => {
   const [prerequisites, setPrerequisites] = useState([{ title: "" }]);
   const [courseContentData, setCourseContentData] = useState([
     {
-      videoFile: null,
+      videoFile: {} as File,
       s3Url: "",
       videoUrls: [
         {
@@ -124,7 +125,7 @@ const CreateCourse = (props: Props) => {
             courseContentData[index].videoUrls[0].url = reqUrl;
             courseContentData[index].videoUrls[0].language = "English";
             courseContentData[index].s3Url = reqUrl;
-            courseContentData[index].videoFile = null;
+            courseContentData[index].videoFile = {} as File;
           } catch (error) {
             console.error("Error uploading file:", error);
           }
