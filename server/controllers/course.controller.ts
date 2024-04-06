@@ -19,15 +19,12 @@ const Path = require('path');
 export const uploadCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     var data = req.body;
-    console.log("backend req incommmmmmming !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    const match = req.body.courseData[0].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
-    const [, bucket, key] = match;
     AWS.config.update({
       region: "ap-south-1",
       accessKeyId: "",
       secretAccessKey: "",
     });
-    async function downloadAndUploadS3Object(localFilePath: string) {
+    async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
       try {
         const s3 = new AWS.S3();
         const params = {
@@ -36,7 +33,6 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
         };
         // Download the object
         const { Body } = await s3.getObject(params).promise();
-
         // Write the object content to a local file
         await fs.promises.writeFile(localFilePath, Body);
         console.log(`Object downloaded successfully to ${localFilePath}`);
@@ -72,7 +68,7 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
         console.log('File uploaded successfully:', uploadResponse.data);
 
         // Update video URL in course data
-        data.courseData[0].videoUrls[0].url = videoId;
+        data.courseData[index].videoUrls[0].url = videoId;
         // Delete the local file after successful upload
         await fs.promises.unlink(localFilePath);
         console.log('File deleted successfully');
@@ -80,28 +76,31 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
         console.error('Error downloading and uploading S3 object:', error);
       }
     }
-
-    (async () => {
-      const localFilePath = path.join(__dirname, `${key}`);
-      try {
-        await downloadAndUploadS3Object(localFilePath);
-        const thumbnail = data.thumbnail;
-        if (thumbnail) {
-          const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
-            folder: "courses",
-          });
-          data.thumbnail = {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
-          }
+    const promises: any = [];
+    for (let i = 0; i < req.body.courseData.length; i++) {
+      const match = req.body.courseData[i].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
+      const [, bucket, key] = match;
+      (async () => {
+        const localFilePath = path.join(__dirname, `${key}`);
+        try {
+          promises.push(downloadAndUploadS3Object(localFilePath, key, bucket, i));
+        } catch (error) {
+          console.error('Error downloading S3 object:', error);
         }
-        createCourse(data, res, next);
-      } catch (error) {
-        console.error('Error downloading S3 object:', error);
-        // Handle errors appropriately
+      })();
+    }
+    await Promise.all(promises);
+    const thumbnail = data.thumbnail;
+    if (thumbnail) {
+      const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
+        folder: "courses",
+      });
+      data.thumbnail = {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
       }
-    })();
-
+    }
+    createCourse(data, res, next);
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -158,11 +157,84 @@ const deleteS3 = (async (data: any) => {
 // edit course
 export const editCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = req.body;
+    var data = req.body;
+    console.log(data);
     const thumbnail = data.thumbnail;
     const courseId = req.params.id;
     const courseData = await CourseModel.findById(courseId) as any;
+    await deleteS3(data);
+    await deleteVdocipher(data);
+    AWS.config.update({
+      region: "ap-south-1",
+      accessKeyId: "",
+      secretAccessKey: "",
+    });
+    async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
+      try {
+        const s3 = new AWS.S3();
+        const params = {
+          Bucket: bucket,
+          Key: key,
+        };
+        // Download the object
+        const { Body } = await s3.getObject(params).promise();
+        // Write the object content to a local file
+        await fs.promises.writeFile(localFilePath, Body);
+        console.log(`Object downloaded successfully to ${localFilePath}`);
 
+        const credUrl = "https://dev.vdocipher.com/api/videos";
+        const credParams = { title: key };
+        const credHeaders = {
+          'Authorization': `Apisecret ${process.env.VDOCIPHER_API_SECRET}`
+        };
+
+        const response = await axios.put(credUrl, {}, { params: credParams, headers: credHeaders });
+        const uploadInfo = response.data;
+        const clientPayload = uploadInfo.clientPayload;
+        const videoId = uploadInfo.videoId;
+        const uploadLink = clientPayload.uploadLink;
+
+        // Prepare form data for file upload
+        const formData = new FormData();
+        formData.append('x-amz-credential', clientPayload['x-amz-credential']);
+        formData.append('x-amz-algorithm', clientPayload['x-amz-algorithm']);
+        formData.append('x-amz-date', clientPayload['x-amz-date']);
+        formData.append('x-amz-signature', clientPayload['x-amz-signature']);
+        formData.append('key', clientPayload['key']);
+        formData.append('policy', clientPayload['policy']);
+        formData.append('success_action_status', '201');
+        formData.append('success_action_redirect', '');
+        formData.append('file', fs.createReadStream(localFilePath));
+
+        // Upload file to S3
+        const uploadResponse = await axios.post(uploadLink, formData, {
+          headers: formData.getHeaders()
+        });
+        console.log('File uploaded successfully:', uploadResponse.data);
+
+        // Update video URL in course data
+        data.courseData[index].videoUrls[0].url = videoId;
+        // Delete the local file after successful upload
+        await fs.promises.unlink(localFilePath);
+        console.log('File deleted successfully');
+      } catch (error) {
+        console.error('Error downloading and uploading S3 object:', error);
+      }
+    }
+    const promises: any = [];
+    for (let i = 0; i < data.courseData.length; i++) {
+      const match = data.courseData[i].s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
+      const [, bucket, key] = match;
+      (async () => {
+        const localFilePath = path.join(__dirname, `${key}`);
+        try {
+          promises.push(downloadAndUploadS3Object(localFilePath, key, bucket, i));
+        } catch (error) {
+          console.error('Error downloading S3 object:', error);
+        }
+      })();
+    }
+    await Promise.all(promises);
     if (thumbnail && !thumbnail.startsWith("https")) {
       await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
 
@@ -181,8 +253,7 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
         url: courseData?.thumbnail.url,
       };
     }
-    await deleteS3(data);
-    await deleteVdocipher(data);
+
     const course = await CourseModel.findByIdAndUpdate(
       courseId,
       {
