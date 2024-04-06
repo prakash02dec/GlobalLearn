@@ -257,7 +257,7 @@ if sys.platform == 'win32':
 
 def dub_for_all_lang(video_url, srt_url):
 
-    # Counter for number of languages processed
+    print("===============================================Dubbing video audio...===========================================")
 
     global languageNums, videoFilePath, srtFile, batchSettings
 
@@ -306,6 +306,8 @@ def dub_for_all_lang(video_url, srt_url):
             continue
 
     print(shared_imports.ORIGINAL_VIDEO_NAME," : audio dubbing done successfully")
-    print("starting video generation...")
+
+    print("===============================================Generating Dub video file for each Language...===========================================")
+
     outputFilesPath =  video_generater.video_generater()
     return outputFilesPath

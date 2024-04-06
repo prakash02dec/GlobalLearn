@@ -6,6 +6,7 @@ import dubbing.settings as settings
 
 
 def upload_video_to_vdocipher(video_title, video_file_path):
+  print("===============================================Uploading video file...===========================================")
   ############# STEP 1 ####################
   api_secret_key = settings.VDOCIPHER_API_SECRET
 

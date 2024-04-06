@@ -13,7 +13,7 @@ from dub.Scripts.transcribe import download_file_from_s3
 from dub.Scripts.vdocipher_uploader import upload_video_to_vdocipher
 from bson.objectid import ObjectId
 import requests
-
+from dub.Scripts.utils import delete_folder
 from dubbing.settings import mongoDB
 
 
@@ -37,7 +37,6 @@ class VideoDubView(APIView):
                 'success': False,
                 'message': f'Error reading batch.ini: {e}'
                 }, status=status.HTTP_400_BAD_REQUEST)
-
 
 
         if not os.path.exists(shared_imports.DOWNLOAD_DIRECTORY):
@@ -159,11 +158,15 @@ class VideoDubView(APIView):
                     # now append the new video url  array with the new url with its respective language
                     content['videoUrls'].append(new_video_url)
 
+            delete_folder(shared_imports.DOWNLOAD_FOLDER)
+            delete_folder(shared_imports.OUTPUT_FOLDER)
+
             # save in mongodb
             courses.update_one(
                 { '_id' : ObjectId(courseId) },
                 { '$set': { 'courseData': courseData } }
             )
+
 
         return Response({
             'success': True,

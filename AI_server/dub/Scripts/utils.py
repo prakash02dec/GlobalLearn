@@ -1,4 +1,6 @@
 import csv
+import shutil
+import os
 
 # Interprets a string as a boolean. Returns True or False
 def parseBool(string, silent=False):
@@ -54,3 +56,14 @@ def txt_to_list(txtFilePath):
             if line.strip() != '' and line.strip()[0] != '#':
                 entriesList.append(line.strip())
     return entriesList
+
+def delete_folder(folder_path):
+    try:
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+            print(f"Folder '{folder_path}' and its contents deleted successfully.")
+        else:
+            print(f"Folder '{folder_path}' does not exist.")
+    except Exception as e:
+        print(f"Error deleting folder: {e}")
+
