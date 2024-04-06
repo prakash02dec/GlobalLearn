@@ -52,7 +52,7 @@ const CourseContent: FC<Props> = ({
     if (files && files.length > 0) {
       const file = files[0];
       const updatedData = [...courseContentData];
-      updatedData[index].videoFile = file;
+      updatedData[index] = { ...courseContentData[index], videoFile: file };
       setCourseContentData(updatedData);
     } else {
       console.error("No file selected for upload.");
@@ -107,6 +107,8 @@ const CourseContent: FC<Props> = ({
     } else {
       setActiveSection(activeSection + 1);
       const newContent = {
+        videoFile: null,
+        s3Url: "",
         videoUrls: [{ language: "", url: "" }],
         title: "",
         description: "",
