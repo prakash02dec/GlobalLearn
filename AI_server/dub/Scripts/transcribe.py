@@ -42,19 +42,25 @@ def download_file_from_s3(file_uri, file_path, session):
         traceback.print_exc()
         return False
 
-def download_transcript(transcript_file_uri,session,file_name):
+def download_transcript(transcript_file_uri,session,file_name, generate_srt_file = True ):
     s3 = session.client('s3')
-    print(transcript_file_uri[0].split('/'))
-    response = s3.get_object(Bucket=transcript_file_uri[0].split('/')[3], Key=transcript_file_uri[0].split('/')[4])
-    transcript_srt = response['Body'].read().decode('utf-8')
-    srt_file_path = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{shared_imports.ORIGINAL_VIDEO_NAME}.srt')
-    print(srt_file_path)
-    with open(srt_file_path, "w") as f:
+
+
+    if(generate_srt_file):
+        response = s3.get_object(Bucket=transcript_file_uri[0].split('/')[3], Key=transcript_file_uri[0].split('/')[4])
+        transcript_srt = response['Body'].read().decode('utf-8')
+        file_path = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{shared_imports.ORIGINAL_VIDEO_NAME}.srt')
+    else:
+        response = s3.get_object(Bucket=transcript_file_uri.split('/')[3], Key=transcript_file_uri.split('/')[4])
+        transcript_srt = response['Body'].read().decode('utf-8')
+        file_path = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{shared_imports.ORIGINAL_VIDEO_NAME}.json')
+    print(file_path)
+    with open(file_path, "w") as f:
         f.write(transcript_srt)
     s3.delete_object(Bucket = 'globallearn',Key = f'{file_name}.srt')
     s3.delete_object(Bucket = 'globallearn',Key = f'{file_name}.json')
 
-def start_transcription_job(transcription_job_name, language_code, media_sample_rate_hertz, media_format, media_file_uri,session,file_name):
+def start_transcription_job(transcription_job_name, language_code, media_sample_rate_hertz, media_format, media_file_uri,session,file_name , generate_srt_file = True ):
 
     transcribe = session.client('transcribe')
 
@@ -87,12 +93,19 @@ def start_transcription_job(transcription_job_name, language_code, media_sample_
             time.sleep(10)  # Wait for 10 seconds
             response = transcribe.get_transcription_job(TranscriptionJobName=transcription_job_name)
             job_status = response['TranscriptionJob']['TranscriptionJobStatus']
-
         if job_status == 'COMPLETED':
             print("Transcription job completed successfully.")
-            transcript_file_uri = response['TranscriptionJob']['Subtitles']['SubtitleFileUris']
-            download_transcript(transcript_file_uri,session,file_name)
-            transcribe.delete_transcription_job(TranscriptionJobName=transcription_job_name)
+            try :
+                if(generate_srt_file):
+                    transcript_file_uri = response['TranscriptionJob']['Subtitles']['SubtitleFileUris']
+                    download_transcript(transcript_file_uri,session,file_name, generate_srt_file)
+                else :
+                    transcribe_json_uri = response['TranscriptionJob']['Transcript']['TranscriptFileUri']
+                    download_transcript(transcribe_json_uri,session,file_name , generate_srt_file)
+            except Exception as e:
+                print(f"Error downloading transcript file: {e}")
+            finally:
+                transcribe.delete_transcription_job(TranscriptionJobName=transcription_job_name)
         elif job_status == 'FAILED':
             print("Transcription job failed.")
 
@@ -101,7 +114,7 @@ def start_transcription_job(transcription_job_name, language_code, media_sample_
 
 
 
-def transcribe(audio_path,videoToProcess):
+def transcribe(audio_path,videoToProcess , generate_srt_file = True):
     print("===============================================Transcribing audio file...===========================================")
 
     session = settings.AWS_SESSION
@@ -117,7 +130,7 @@ def transcribe(audio_path,videoToProcess):
         language_code = "en-US"
         media_sample_rate_hertz = 44100
         media_format = "mp3"
-        start_transcription_job(transcription_job_name, language_code, media_sample_rate_hertz, media_format, s3_uri,session,file_name)
+        start_transcription_job(transcription_job_name, language_code, media_sample_rate_hertz, media_format, s3_uri,session,file_name , generate_srt_file)
 
     else:
         print("File upload failed.")

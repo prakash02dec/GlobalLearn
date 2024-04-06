@@ -1,5 +1,3 @@
-print("\n----- All Languages Processed, Now Adding Tracks To video-----")
-
 import os
 import sys
 

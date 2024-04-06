@@ -15,6 +15,8 @@ from bson.objectid import ObjectId
 import requests
 from dub.Scripts.utils import delete_folder
 from dubbing.settings import mongoDB
+import json
+from dub.Scripts.OpenAI import generate_short_notes
 
 
 class VideoDubView(APIView):
@@ -140,7 +142,7 @@ class VideoDubView(APIView):
 
                 videoId = result['videoId']
 
-                # Create a new dictionary
+                # now append the video url  array with the new url with its respective language if present else create a new one
                 ispresent = False
 
                 for video_url in content['videoUrls']:
@@ -173,3 +175,107 @@ class VideoDubView(APIView):
             'message': 'dubbing done'
             }, status=status.HTTP_200_OK)
 
+
+class GenerateShortNotesView(APIView):
+
+    def post(self, request):
+        data = request.data
+        courseId = data.get('courseId')
+
+        print(f"INTIATING NOTES GENERATION PROCESS FOR COURSE ID : {courseId}\n\n")
+        # print(mongoDB.list_collection_names())
+
+        courses = mongoDB['courses']
+        course = courses.find_one({ '_id' : ObjectId(courseId)  })
+        courseData = course['courseData']
+
+        try:
+            batchConfig = configparser.ConfigParser()
+            batchConfig.read('dub/batch.ini')
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error reading batch.ini: {e}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if not os.path.exists(shared_imports.DOWNLOAD_DIRECTORY):
+            os.makedirs(shared_imports.DOWNLOAD_DIRECTORY)
+
+
+        for content in courseData:
+            # first get aws url from course data
+            # and by default its english
+            # now we need to download the video from aws
+            # now transcribe the video
+            # now generate the notes
+            # save in mongodb
+
+            s3Url = content['s3Url']
+            video = s3Url.split('/')[3]
+            video_name = video.split('.')[0]
+
+            print(f"Downloading video from aws s3 : {video}")
+
+            shared_imports.DOWNLOAD_FOLDER = os.path.join(shared_imports.DOWNLOAD_DIRECTORY , video_name)
+
+            if not os.path.exists(shared_imports.DOWNLOAD_FOLDER):
+                os.makedirs(shared_imports.DOWNLOAD_FOLDER)
+
+            VIDEO_URL = os.path.join(shared_imports.DOWNLOAD_FOLDER , video)
+
+            try :
+                download_file_from_s3(s3Url, VIDEO_URL, settings.AWS_SESSION )
+            except Exception as e:
+                return Response({
+                    'success': False,
+                    'message': f'Error downloading video from s3: {e}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                batchConfig.set('SETTINGS', 'original_video_file_path', VIDEO_URL)
+
+                with open('dub/batch.ini', 'w') as configfile:
+                    batchConfig.write(configfile)
+
+                shared_imports.set_up_config()
+
+            except configparser.Error as e:
+                print(f"Error updating configuration file: {e}")
+            except IOError as e:
+                print(f"IOError: {e}")
+
+            output_audio_file_path = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{video_name}.mp3')
+            audioCommand = f'ffmpeg -y -i {VIDEO_URL} -vn -acodec libmp3lame -q:a 0 {output_audio_file_path}'
+            print(output_audio_file_path)
+            print(audioCommand)
+            print("\n Extracting Original audio track from the video...")
+            sp.run(audioCommand)
+
+            transcribe.transcribe(output_audio_file_path,VIDEO_URL ,False )
+
+            # now generate the notes
+            json_url = os.path.join(shared_imports.DOWNLOAD_FOLDER , f'{video_name}.json')
+            with open(json_url, 'r') as file:
+                data = json.load(file)
+
+
+            transcribed_text = data['results']['transcripts'][0]['transcript']
+
+
+            notes = generate_short_notes(transcribed_text)
+            print(notes)
+            # content['notes'] = notes
+
+            delete_folder(shared_imports.DOWNLOAD_FOLDER)
+            # save in mongodb
+            # courses.update_one(
+            #     { '_id' : ObjectId(courseId) },
+            #     { '$set': { 'courseData': courseData } }
+            # )
+
+
+        return Response({
+            'success': True,
+            'message': 'dubbing done',
+            }, status=status.HTTP_200_OK)

@@ -293,5 +293,5 @@ if cloudConfig['tts_service'] == "google" or (config['skip_translation'] == Fals
 
 
 
-
 VDOCIPHER_API_SECRET = os.getenv('VDOCIPHER_API_SECRET')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
