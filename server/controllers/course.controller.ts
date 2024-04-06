@@ -21,8 +21,8 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     var data = req.body;
     AWS.config.update({
       region: "ap-south-1",
-      accessKeyId: "",
-      secretAccessKey: "",
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_KEY,
     });
     async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
       try {
@@ -134,8 +134,8 @@ const deleteS3 = (async (data: any) => {
     // Configure AWS SDK with credentials
     AWS.config.update({
       region: "ap-south-1",
-      accessKeyId: "",
-      secretAccessKey: "",
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_KEY,
     });
     // Create an S3 service object
     const s3 = new AWS.S3();
@@ -166,8 +166,8 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
     await deleteVdocipher(data);
     AWS.config.update({
       region: "ap-south-1",
-      accessKeyId: "",
-      secretAccessKey: "",
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_KEY,
     });
     async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
       try {
