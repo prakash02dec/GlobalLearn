@@ -9,7 +9,6 @@ import { useCreateCourseMutation } from "../../../../redux/features/courses/cour
 import { toast } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import AWS from "aws-sdk";
-
 type Props = {};
 
 const CreateCourse = (props: Props) => {
@@ -124,6 +123,7 @@ const CreateCourse = (props: Props) => {
             const reqUrl = `s3://${bucketName}/${fileName}`;
             courseContentData[index].videoUrls[0].url = reqUrl;
             courseContentData[index].videoUrls[0].language = "English";
+            console.log(reqUrl);
             courseContentData[index].s3Url = reqUrl;
             courseContentData[index].videoFile = {} as File;
           } catch (error) {
