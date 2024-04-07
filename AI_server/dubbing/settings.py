@@ -204,7 +204,7 @@ DEEPL_API = None
 def get_authenticated_service():
   global GOOGLE_TTS_API
   global GOOGLE_TRANSLATE_API
-  SERVICE_ACCOUNT_FILE = 'service_secrets.json'
+  # SERVICE_ACCOUNT_FILE = 'service_secrets.json'
   GOOGLE_API_SCOPES = ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/cloud-translation']
 
   # TTS API Info
@@ -223,24 +223,36 @@ def get_authenticated_service():
 
   API_SCOPES = GOOGLE_API_SCOPES
 
-  secrets_file = SERVICE_ACCOUNT_FILE
+  # secrets_file = SERVICE_ACCOUNT_FILE
 
-  # Check if client_secrets.json file exists, if not give error
-  if not os.path.exists(secrets_file):
-    # In case people don't have file extension viewing enabled, they may add a redundant json extension
-    if os.path.exists(f"{secrets_file}.json"):
+  # # Check if client_secrets.json file exists, if not give error
+  # if not os.path.exists(secrets_file):
+  #   # In case people don't have file extension viewing enabled, they may add a redundant json extension
+  #   if os.path.exists(f"{secrets_file}.json"):
 
-      secrets_file = secrets_file + ".json"
-    else:
-      print(f"\n         ----- [!] Error: client_secrets.json file not found -----")
-      print(f" ----- Did you create a Google Cloud Platform Project to access the API? ----- ")
-      input("\nPress Enter to Exit...")
-      sys.exit()
+  #     secrets_file = secrets_file + ".json"
+  #   else:
+  #     print(f"\n         ----- [!] Error: client_secrets.json file not found -----")
+  #     print(f" ----- Did you create a Google Cloud Platform Project to access the API? ----- ")
+  #     input("\nPress Enter to Exit...")
+  #     sys.exit()
 
   creds = None
-
+  SERVICE_ACCOUNT_CREDENTIALS = {
+    'type': os.getenv('TYPE'),
+    'project_id': os.getenv('PROJECT_ID'),
+    'private_key_id': os.getenv('PRIVATE_KEY_ID'),
+    'private_key': os.getenv('PRIVATE_KEY').replace('\\n', '\n'),
+    'client_email': os.getenv('CLIENT_EMAIL'),
+    'client_id': os.getenv('CLIENT_ID'),
+    'auth_uri': os.getenv('AUTH_URI'),
+    'token_uri': os.getenv('TOKEN_URI'),
+    'auth_provider_x509_cert_url': os.getenv('AUTH_PROVIDER_X509_CERT_URL'),
+    'client_x509_cert_url': os.getenv('CLIENT_X509_CERT_URL'),
+    "universe_domain": "googleapis.com"
+  }
   # Load the service account credentials
-  creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=API_SCOPES)
+  creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_CREDENTIALS,  scopes=API_SCOPES)
   # Build tts and translate API objects
   GOOGLE_TTS_API = build(GOOGLE_TTS_API_SERVICE_NAME, GOOGLE_TTS_API_VERSION, credentials=creds, discoveryServiceUrl=TTS_DISCOVERY_SERVICE_URL)
   GOOGLE_TRANSLATE_API = build(GOOGLE_TRANSLATE_API_SERVICE_NAME, GOOGLE_TRANSLATE_API_VERSION, credentials=creds, discoveryServiceUrl=TRANSLATE_DISCOVERY_SERVICE_URL)
