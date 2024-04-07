@@ -44,8 +44,14 @@ const CreateCourse = (props: Props) => {
   const [prerequisites, setPrerequisites] = useState([{ title: "" }]);
   const [courseContentData, setCourseContentData] = useState([
     {
-      //videoFile: null,
-      videoUrl: "",
+      videoFile: {} as File,
+      s3Url: "",
+      videoUrls: [
+        {
+          language: "",
+          url: "",
+        },
+      ],
       title: "",
       description: "",
       videoSection: "Untitled Section",
@@ -59,30 +65,30 @@ const CreateCourse = (props: Props) => {
       suggestion: "",
     },
   ]);
-  // AWS.config.update({
-  //   accessKeyId: ,
-  //   secretAccessKey: ,
-  //   region: "ap-south-1",
-  // });
-  // const s3 = new AWS.S3();
-  // const uploadFileToS3 = (file: any, fileName: any, bucketName: any) => {
-  //   const params = {
-  //     Bucket: bucketName,
-  //     Key: fileName,
-  //     Body: file,
-  //   };
-  //   return new Promise((resolve, reject) => {
-  //     s3.upload(params, (err: any, data: any) => {
-  //       if (err) {
-  //         console.log(err);
-  //         reject(err);
-  //       } else {
-  //         console.log("no error");
-  //         resolve(data.Location); // Returns the URL of the uploaded file
-  //       }
-  //     });
-  //   });
-  // };
+  AWS.config.update({
+    region: "ap-south-1",
+    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY,
+    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_KEY,
+  });
+  const s3 = new AWS.S3();
+  const uploadFileToS3 = (file: any, fileName: any, bucketName: any) => {
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+      Body: file,
+    };
+    return new Promise((resolve, reject) => {
+      s3.upload(params, (err: any, data: any) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        } else {
+          console.log("no error");
+          resolve(data.Location); // Returns the URL of the uploaded file
+        }
+      });
+    });
+  };
   const [courseData, setCourseData] = useState({});
 
   const handleSubmit = async () => {
@@ -94,52 +100,84 @@ const CreateCourse = (props: Props) => {
     const formattedPrerequisites = prerequisites.map((prerequisite) => ({
       title: prerequisite.title,
     }));
-    // for (let i = 0; i < courseContentData.length; i++) {
-    //   const file = courseContentData[i].videoFile;
-    //   const fileName = courseContentData[i].videoFile.name;
-    //   const bucketName = "globallearn";
+    // Array to store promises
+    const uploadPromises = [];
 
-    //   uploadFileToS3(file, fileName, bucketName)
-    //     .then((fileUrl) => {
-    //       console.log("File uploaded successfully:", fileUrl);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error uploading file:", error);
-    //     });
-    //   console.log(courseContentData[0].videoFile);
-    // }
-    // Format course content array
-    const formattedCourseContentData = courseContentData.map(
-      (courseContent) => ({
-        videoUrl: courseContent.videoUrl,
-        title: courseContent.title,
-        description: courseContent.description,
-        videoLength: courseContent.videoLength,
-        videoSection: courseContent.videoSection,
-        links: courseContent.links.map((link) => ({
-          title: link.title,
-          url: link.url,
-        })),
-        suggestion: courseContent.suggestion,
+    for (let i = 0; i < courseContentData.length; i++) {
+      const file = courseContentData[i].videoFile;
+      const fileName = courseContentData[i].videoFile.name;
+      const bucketName = "globallearn";
+
+      // Push each upload promise to the array
+      uploadPromises.push(
+        (async function (index) {
+          try {
+            const fileUrl: any = await uploadFileToS3(
+              file,
+              fileName,
+              bucketName
+            );
+            console.log("File uploaded successfully:", fileUrl);
+            const fileUrlString = fileUrl.toString();
+            const reqUrl = `s3://${bucketName}/${fileName}`;
+            courseContentData[index].videoUrls[0].url = reqUrl;
+            courseContentData[index].videoUrls[0].language = "English";
+            courseContentData[index].s3Url = reqUrl;
+            courseContentData[index].videoFile = {} as File;
+          } catch (error) {
+            console.error("Error uploading file:", error);
+          }
+        })(i)
+      ); // Immediately invoke the closure with the current value of i
+    }
+
+    // Wait for all promises to resolve
+    Promise.all(uploadPromises)
+      .then(() => {
+        console.log("All uploads completed");
+
+        // Format course content array
+        const formattedCourseContentData = courseContentData.map(
+          (courseContent) => ({
+            s3Url: courseContent.s3Url,
+            videoUrls: courseContent.videoUrls.map((videoUrl) => ({
+              language: videoUrl.language,
+              url: videoUrl.url,
+            })),
+            title: courseContent.title,
+            description: courseContent.description,
+            videoLength: courseContent.videoLength,
+            videoSection: courseContent.videoSection,
+            links: courseContent.links.map((link) => ({
+              title: link.title,
+              url: link.url,
+            })),
+            suggestion: courseContent.suggestion,
+          })
+        );
+
+        // Use formattedCourseContentData here
+        //   prepare our data object
+        const data = {
+          name: courseInfo.name,
+          description: courseInfo.description,
+          categories: courseInfo.categories,
+          price: courseInfo.price,
+          estimatedPrice: courseInfo.estimatedPrice,
+          tags: courseInfo.tags,
+          thumbnail: courseInfo.thumbnail,
+          level: courseInfo.level,
+          demoUrl: courseInfo.demoUrl,
+          totalVideos: courseContentData.length,
+          benefits: formattedBenefits,
+          prerequisites: formattedPrerequisites,
+          courseData: formattedCourseContentData,
+        };
+        setCourseData(data);
       })
-    );
-    //   prepare our data object
-    const data = {
-      name: courseInfo.name,
-      description: courseInfo.description,
-      categories: courseInfo.categories,
-      price: courseInfo.price,
-      estimatedPrice: courseInfo.estimatedPrice,
-      tags: courseInfo.tags,
-      thumbnail: courseInfo.thumbnail,
-      level: courseInfo.level,
-      demoUrl: courseInfo.demoUrl,
-      totalVideos: courseContentData.length,
-      benefits: formattedBenefits,
-      prerequisites: formattedPrerequisites,
-      courseData: formattedCourseContentData,
-    };
-    setCourseData(data);
+      .catch((error) => {
+        console.error("Error during upload:", error);
+      });
   };
 
   const handleCourseCreate = async (e: any) => {

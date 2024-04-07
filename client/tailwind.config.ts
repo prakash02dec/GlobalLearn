@@ -1,15 +1,16 @@
 import type { Config } from 'tailwindcss'
-
+const flowbite = require("flowbite-react/tailwind");
 const config: Config = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    flowbite.content(),
   ],
   darkMode: ["class"],
   theme: {
     extend: {
-      fontFamily:{
+      fontFamily: {
         Poppins: ["var(--font-Poppins)"],
         Josefin: ["var(--font-Josefin)"],
       },
@@ -18,7 +19,7 @@ const config: Config = {
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
-      screens:{
+      screens: {
         "1000px": "1000px",
         "1100px": "1100px",
         "1200px": "1200px",
@@ -29,6 +30,6 @@ const config: Config = {
       }
     },
   },
-  plugins: [],
+  plugins: [flowbite.plugin(),],
 }
 export default config
