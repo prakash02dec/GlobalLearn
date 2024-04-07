@@ -26,7 +26,7 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     AWS.config.update({
       region: "ap-south-1",
       accessKeyId: process.env.AWS_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SECRET_KEY,
+      secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
     });
     async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
       try {
@@ -108,7 +108,7 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
     // now creating course and trigger AI server
     const course = await CourseModel.create(data);
     const courseId = course._id;
-    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, {'courseId': courseId})
+    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, { 'courseId': courseId })
     res.status(201).json({
       success: true,
       course,
@@ -147,7 +147,7 @@ const deleteS3 = (async (data: any) => {
     AWS.config.update({
       region: "ap-south-1",
       accessKeyId: process.env.AWS_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SECRET_KEY,
+      secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
     });
     // Create an S3 service object
     const s3 = new AWS.S3();
@@ -179,7 +179,7 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
     AWS.config.update({
       region: "ap-south-1",
       accessKeyId: process.env.AWS_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SECRET_KEY,
+      secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
     });
     async function downloadAndUploadS3Object(localFilePath: string, key: string, bucket: string, index: number) {
       try {
@@ -283,7 +283,7 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
     await redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604800);
 
 
-    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, {'courseId': courseId})
+    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, { 'courseId': courseId })
 
     res.status(201).json({
       success: true,
