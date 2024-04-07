@@ -122,7 +122,6 @@ const CreateCourse = (props: Props) => {
             const reqUrl = `s3://${bucketName}/${fileName}`;
             courseContentData[index].videoUrls[0].url = reqUrl;
             courseContentData[index].videoUrls[0].language = "English";
-            console.log(reqUrl);
             courseContentData[index].s3Url = reqUrl;
             courseContentData[index].videoFile = {} as File;
           } catch (error) {

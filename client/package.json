@@ -23,7 +23,6 @@
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "bufferutil": "^4.0.8",
-    "dotenv": "^16.4.5",
     "flowbite-react": "^0.8.0",
     "formik": "^2.4.5",
     "next": "14.0.4",

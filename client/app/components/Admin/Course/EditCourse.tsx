@@ -149,20 +149,10 @@ const EditCourse: FC<Props> = ({ id }) => {
             console.log("File uploaded successfully:", fileUrl);
             const fileUrlString = fileUrl.toString();
             const reqUrl = `s3://${bucketName}/${fileName}`;
-            courseContentData[index].videoUrls[0] = {
-              ...courseContentData[index].videoUrls[0],
-              url: reqUrl,
-            };
-            courseContentData[index].videoUrls[0] = {
-              ...courseContentData[index].videoUrls[0],
-              language: "English",
-            };
             courseContentData[index] = {
               ...courseContentData[index],
               s3Url: reqUrl,
             };
-            console.log("praaakaaaaaaashhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-            console.log(courseContentData[index].s3Url);
             courseContentData[index] = {
               ...courseContentData[index],
               videoFile: {} as File,

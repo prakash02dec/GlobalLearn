@@ -18,6 +18,7 @@ from dubbing.settings import mongoDB
 import json
 from dub.Scripts.OpenAI import generate_short_notes
 
+PREV_FOLDER_TO_DELETE = []
 
 class VideoDubView(APIView):
 
@@ -67,7 +68,7 @@ class VideoDubView(APIView):
             's3Url': 's3://globallearn/sample_video.mp4', 'videoUrls': [{'language': 'english', 'url': 'bcd85ca1c4e08051dcd07ed203241312', '_id': ObjectId('660fb68e14440ec7f48c8c11')}]
         }
         """
-
+        FOLDER_TO_DELETE = []
         for content in courseData:
             # first get aws url from course data
             # and by default its english
@@ -160,15 +161,18 @@ class VideoDubView(APIView):
                     # now append the new video url  array with the new url with its respective language
                     content['videoUrls'].append(new_video_url)
 
-            delete_folder(shared_imports.DOWNLOAD_FOLDER)
-            delete_folder(shared_imports.OUTPUT_FOLDER)
+            FOLDER_TO_DELETE.append(shared_imports.DOWNLOAD_FOLDER)
+            FOLDER_TO_DELETE.append(shared_imports.OUTPUT_FOLDER)
 
             # save in mongodb
             courses.update_one(
                 { '_id' : ObjectId(courseId) },
                 { '$set': { 'courseData': courseData } }
             )
-
+        global PREV_FOLDER_TO_DELETE
+        for folder in PREV_FOLDER_TO_DELETE:
+            delete_folder(folder)
+        PREV_FOLDER_TO_DELETE = FOLDER_TO_DELETE
 
         return Response({
             'success': True,

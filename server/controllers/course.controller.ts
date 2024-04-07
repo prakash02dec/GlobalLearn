@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import { NextFunction, Request, Response } from "express";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
@@ -15,6 +18,7 @@ import AWS from "aws-sdk";
 import FormData from 'form-data';
 const fs = require('fs');
 const Path = require('path');
+const AI_SERVER_URL = process.env.AI_SERVER_URL;
 // upload course
 export const uploadCourse = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -100,7 +104,15 @@ export const uploadCourse = catchAsyncError(async (req: Request, res: Response, 
         url: myCloud.secure_url,
       }
     }
-    createCourse(data, res, next);
+
+    // now creating course and trigger AI server
+    const course = await CourseModel.create(data);
+    const courseId = course._id;
+    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, {'courseId': courseId})
+    res.status(201).json({
+      success: true,
+      course,
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -162,8 +174,8 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
     const thumbnail = data.thumbnail;
     const courseId = req.params.id;
     const courseData = await CourseModel.findById(courseId) as any;
-    await deleteS3(data);
-    await deleteVdocipher(data);
+    await deleteS3(courseData);
+    await deleteVdocipher(courseData);
     AWS.config.update({
       region: "ap-south-1",
       accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -213,7 +225,13 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
         console.log('File uploaded successfully:', uploadResponse.data);
 
         // Update video URL in course data
-        data.courseData[index].videoUrls[0].url = videoId;
+        const videoUrls = [
+          {
+            language: "English",
+            url: videoId,
+          },
+        ]
+        data.courseData[index].videoUrls = videoUrls;
         // Delete the local file after successful upload
         await fs.promises.unlink(localFilePath);
         console.log('File deleted successfully');
@@ -263,6 +281,10 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
     );
     const updatedCourse = await CourseModel.findById(req.params.id).select("-courseData.videoUrls -courseData.s3Url -courseData.suggestion -courseData.questions -courseData.links");
     await redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604800);
+
+
+    axios.post(`${AI_SERVER_URL}/v1/api/dub/video/`, {'courseId': courseId})
+
     res.status(201).json({
       success: true,
       course,
