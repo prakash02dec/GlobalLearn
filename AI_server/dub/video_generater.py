@@ -141,7 +141,7 @@ def video_generater():
     # finalCommand = f'ffmpeg -y -i "{videoToProcess}" {trackStringsCombined} {mapList} {metadataCombined} -codec copy "{outputFile}"'
 
     # print("\n Adding audio tracks to video...")
-    # sp.run(finalCommand)
+    # sp.run(finalCommand , shell=True)
 
     ####################################################################################################################################################
 
@@ -164,7 +164,7 @@ def video_generater():
     # print(finalCommand)
 
     # as default language is already uploaded from the frontend so we dont need to run
-    # sp.run(finalCommand)
+    # sp.run(finalCommand , shell=True)
 
     for langcode, filePath in tracksToAddDict.items():
 
@@ -178,7 +178,7 @@ def video_generater():
 
         finalCommand = f'ffmpeg -y -i "{videoToProcess}" {trackStringsCombined} -map 0:v -map 1:a {metadata} -c:v copy  -c:a aac "{outputFile}"'
         # print(finalCommand)
-        sp.run(finalCommand)
+        sp.run(finalCommand ,shell=True)
         outputFilesPath.append([languageDisplayName , outputFile])
 
 

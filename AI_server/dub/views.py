@@ -122,7 +122,7 @@ class VideoDubView(APIView):
             print(output_audio_file_path)
             print(audioCommand)
             print("\n Extracting Original audio track from the video...")
-            sp.run(audioCommand)
+            sp.run(audioCommand , shell=True)
 
             transcribe.transcribe(output_audio_file_path,VIDEO_URL)
 
@@ -254,7 +254,7 @@ class GenerateShortNotesView(APIView):
             print(output_audio_file_path)
             print(audioCommand)
             print("\n Extracting Original audio track from the video...")
-            sp.run(audioCommand)
+            sp.run(audioCommand , shell=True)
 
             transcribe.transcribe(output_audio_file_path,VIDEO_URL ,False )
 
